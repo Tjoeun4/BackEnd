@@ -31,8 +31,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "TRAVEL_USER")
-public class TravelUser implements UserDetails {
+@Table(name = "USERS")
+public class Users implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_member_id_gen")
@@ -79,7 +79,11 @@ public class TravelUser implements UserDetails {
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
 
-
+    private String zipcode;
+    private String addressBase;
+    private String addressDetail;
+    private Integer monthlyFoodBudget;
+    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

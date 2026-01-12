@@ -8,58 +8,26 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.project.member.domain.TravelUser;
-import com.example.project.member.dto.UpdateProfileRequest;
-import com.example.project.member.dto.UserInfoResponse;
-import com.example.project.member.repository.TravelUserRepository;
+import com.example.project.member.domain.Users;
+import com.example.project.member.repository.UsersRepository;
 import com.example.project.security.user.ChangePasswordRequest;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class TravelUserService {
+public class UsersService {
 
     private final PasswordEncoder passwordEncoder;
-    private final TravelUserRepository repository;
+    private final UsersRepository repository;
 
-    // ================================
-    // ❗ 1) 내 정보 조회
-    // ================================
-    public UserInfoResponse getMyInfo(Principal principal) {
-        TravelUser user = repository.findByEmail(principal.getName())
-                .orElseThrow(() -> new RuntimeException("유저 정보를 찾을 수 없습니다."));
 
-        return new UserInfoResponse(
-                user.getId(),
-                user.getNickname(),
-                user.getEmail(),
-                user.getAge(),
-                user.getGender(),
-                user.getRole()
-        );
-    }
-
-    // ================================
-    // ❗ 2) 프로필 수정 (닉네임, 성별, 나이)
-    // ================================
-    public TravelUser updateProfile(Principal principal, UpdateProfileRequest req) {
-
-        TravelUser user = repository.findByEmail(principal.getName())
-                .orElseThrow(() -> new RuntimeException("유저 정보를 찾을 수 없습니다."));
-
-        user.setNickname(req.getNickname());
-        user.setGender(req.getGender());
-        user.setAge(req.getAge());
-
-        return repository.save(user);
-    }
 
     // ================================
     // ❗ 3) 회원 탈퇴 (soft delete)
     // ================================
     public void deleteUser(Principal principal) {
-        TravelUser user = repository.findByEmail(principal.getName())
+        Users user = repository.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException("유저 정보를 찾을 수 없습니다."));
 
         user.setDelflag("Y");
@@ -71,7 +39,7 @@ public class TravelUserService {
     // ❗ 4) 회원 복구
     // ================================
     public void restoreUser(Principal principal) {
-        TravelUser user = repository.findByEmail(principal.getName())
+        Users user = repository.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException("유저 정보를 찾을 수 없습니다."));
 
         user.setDelflag("N");
@@ -86,7 +54,7 @@ public class TravelUserService {
     
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
 
-        var user = (TravelUser) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        var user = (Users) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
         // check if the current password is correct
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {

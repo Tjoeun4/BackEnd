@@ -8,8 +8,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.project.member.domain.TravelUser;
-import com.example.project.member.repository.TravelUserRepository;
+import com.example.project.member.domain.Users;
+import com.example.project.member.repository.UsersRepository;
 import com.example.project.security.config.JwtService;
 import com.example.project.security.token.Token;
 import com.example.project.security.token.TokenRepository;
@@ -23,14 +23,14 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-  private final TravelUserRepository repository;
+  private final UsersRepository repository;
   private final TokenRepository tokenRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
 
   public AuthenticationResponse register(RegisterRequest request) {
-    var user = TravelUser.builder()
+    var user = Users.builder()
         .nickname(request.getNickname())
         .gender(request.getGender())
         .email(request.getEmail())
@@ -67,7 +67,7 @@ public class AuthenticationService {
         .build();
   }
 
-  private void saveUserToken(TravelUser user, String jwtToken) {
+  private void saveUserToken(Users user, String jwtToken) {
     var token = Token.builder()
         .user(user)
         .token(jwtToken)
@@ -78,7 +78,7 @@ public class AuthenticationService {
     tokenRepository.save(token);
   }
 
-  private void revokeAllUserTokens(TravelUser user) {
+  private void revokeAllUserTokens(Users user) {
     var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
     if (validUserTokens.isEmpty())
       return;

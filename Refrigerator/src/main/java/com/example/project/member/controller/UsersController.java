@@ -6,10 +6,8 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.project.member.domain.TravelUser;
-import com.example.project.member.dto.UpdateProfileRequest;
-import com.example.project.member.dto.UserInfoResponse;
-import com.example.project.member.service.TravelUserService;
+import com.example.project.member.domain.Users;
+import com.example.project.member.service.UsersService;
 import com.example.project.security.user.ChangePasswordRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -17,28 +15,10 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
-public class TravelUserController {
+public class UsersController {
 
-    private final TravelUserService service;
+    private final UsersService service;
 
-    // =========================
-    // 1) 내 정보 조회
-    // =========================
-    @GetMapping("/me")
-    public ResponseEntity<UserInfoResponse> getMyInfo(Principal principal) {
-        return ResponseEntity.ok(service.getMyInfo(principal));
-    }
-
-    // =========================
-    // 2) 프로필 수정
-    // =========================
-    @PutMapping("/profile")
-    public ResponseEntity<TravelUser> updateProfile(
-            Principal principal,
-            @RequestBody UpdateProfileRequest req) {
-
-        return ResponseEntity.ok(service.updateProfile(principal, req));
-    }
 
     // =========================
     // 3) 비밀번호 변경

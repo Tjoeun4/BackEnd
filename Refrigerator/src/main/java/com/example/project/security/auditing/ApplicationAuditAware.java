@@ -9,7 +9,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.example.project.member.domain.TravelUser;
+import com.example.project.member.domain.Users;
 
 
 public class ApplicationAuditAware implements AuditorAware<Integer> {
@@ -26,7 +26,7 @@ public class ApplicationAuditAware implements AuditorAware<Integer> {
             return Optional.empty();
         }
 
-        TravelUser userPrincipal = (TravelUser) authentication.getPrincipal();
+        Users userPrincipal = (Users) authentication.getPrincipal();
         return Optional.ofNullable(userPrincipal.getId());
     }
 }

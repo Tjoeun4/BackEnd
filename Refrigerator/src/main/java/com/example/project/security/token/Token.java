@@ -1,7 +1,7 @@
 package com.example.project.security.token;
 
 
-import com.example.project.member.domain.TravelUser;
+import com.example.project.member.domain.Users;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,5 +40,5 @@ public class Token {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "memberid")
-  public TravelUser user;
+  public Users user;
 }
