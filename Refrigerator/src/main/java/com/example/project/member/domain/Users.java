@@ -35,13 +35,13 @@ import lombok.NoArgsConstructor;
 public class Users implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_member_id_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_user_id_gen")
     @SequenceGenerator(
-            name = "seq_member_id_gen",
-            sequenceName = "SEQ_MEMBER_ID",
+            name = "seq_user_id_gen",
+            sequenceName = "SEQ_USER_ID",
             allocationSize = 1
     )
-    @Column(name = "memberid")
+    @Column(name = "user_id")
     private Integer id;
 
     @Column(length = 50)

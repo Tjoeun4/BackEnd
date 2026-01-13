@@ -27,4 +27,8 @@ public class UserSettings {
     private int expiryThresholdDays;
     private LocalTime quietStart;
     private LocalTime quietEnd;
+    private boolean groupbuyAlertEnabled;
+
 }
+
+
