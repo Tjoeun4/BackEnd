@@ -43,7 +43,6 @@ public class GroupBuyPost extends BaseTimeEntity {
     @Column(nullable = false, length = 120)
     private String title;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
     private int priceTotal;
