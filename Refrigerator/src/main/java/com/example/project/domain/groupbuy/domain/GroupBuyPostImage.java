@@ -1,5 +1,6 @@
 package com.example.project.domain.groupbuy.domain;
 
+import com.example.project.domain.groupbuy.domain.GroupBuyPost;
 import com.example.project.member.domain.Users;
 
 import jakarta.persistence.Column;

@@ -3,6 +3,7 @@ package com.example.project.domain.fridege.domain;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.example.project.domain.fridege.domain.FoodCategory;
 import com.example.project.global.controller.BaseTimeEntity;
 import com.example.project.member.domain.Users;
 

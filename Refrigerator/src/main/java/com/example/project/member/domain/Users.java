@@ -49,7 +49,8 @@ public class Users implements UserDetails {
 
     @Column(length = 1)
     private String gender;
-
+    
+    private String job;
     private Integer age;
 
     @Column(length = 100, unique = true)
@@ -79,10 +80,11 @@ public class Users implements UserDetails {
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
 
-    private String zipcode;
+    private Integer zipCode;
     private String addressBase;
     private String addressDetail;
     private Integer monthlyFoodBudget;
+    private String address;
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
