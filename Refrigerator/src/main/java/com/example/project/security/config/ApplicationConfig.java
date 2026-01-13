@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.client.RestTemplate;
 
 import com.example.project.member.repository.UsersRepository;
 import com.example.project.security.auditing.ApplicationAuditAware;
@@ -55,4 +56,9 @@ public class ApplicationConfig {
     return new BCryptPasswordEncoder();
   }
 
+  
+  @Bean
+  public RestTemplate restTemplate() {
+      return new RestTemplate();
+  }
 }
