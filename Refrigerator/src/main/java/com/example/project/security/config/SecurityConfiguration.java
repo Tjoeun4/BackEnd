@@ -43,6 +43,7 @@ public class SecurityConfiguration {
             "/v3/api-docs/**",
             "/swagger-resources",
             "/swagger-resources/**",
+            "/api/ocr/**", // OCR 경로 추가
             "/configuration/ui",
             "/configuration/security",
             "/swagger-ui/**",

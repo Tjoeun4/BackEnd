@@ -58,7 +58,10 @@ dependencies {
 
 	// 5. python 연결을 위한 설정
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
+	
+	// 6. 클로바 사용을 위한 의존성 추가
+	implementation 'org.json:json:20231013' // JSON 파싱용
+	implementation 'commons-codec:commons-codec:1.15' // Base64 인코딩용
 }
 
 tasks.named('test') {
