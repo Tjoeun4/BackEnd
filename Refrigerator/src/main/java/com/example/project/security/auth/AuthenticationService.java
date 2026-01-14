@@ -210,41 +210,6 @@ public class AuthenticationService {
       private String nickname;
   }
 
-  public AuthenticationResponse googleLogin(GoogleLoginRequest request) {
-	    // 1. 유저가 이미 존재하는지 이메일로 확인
-	    var userOptional = repository.findByEmail(request.getEmail());
-	    
-	    Users user;
-	    if (userOptional.isPresent()) {
-	        // 이미 존재하는 유저라면 정보 업데이트 혹은 바로 로그인
-	        user = userOptional.get();
-	    } else {
-	        // 2. 처음 로그인하는 유저라면 회원가입 진행
-	        user = Users.builder()
-	                .email(request.getEmail())
-	                .nickname(request.getNickname())
-	                .job(request.getJobCategory())
-	                .zipCode(request.getZipCode())
-	                .addressBase(request.getBasicAddress())
-	                .addressDetail(request.getDetailAddress())
-	                .role(Role.USER) // 기본 권한 설정
-	                .regflag("Y")
-	                .build();
-	        repository.save(user);
-	    }
-
-	    // 3. 기존 JWT 발급 로직 그대로 활용
-	    var jwtToken = jwtService.generateToken(user);
-	    var refreshToken = jwtService.generateRefreshToken(user);
-	    
-	    revokeAllUserTokens(user); // 기존 토큰 무효화
-	    saveUserToken(user, jwtToken); // 새 토큰 저장
-
-	    return AuthenticationResponse.builder()
-	            .accessToken(jwtToken)
-	            .refreshToken(refreshToken)
-	            .userId(user.getUserId()) // AuthenticationResponse에 추가한 userId
-	            .build();
-	}
+  
   
 }

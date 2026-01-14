@@ -48,11 +48,6 @@ public class AuthenticationController {
     return ResponseEntity.ok("인증 성공! 이 메시지는 보안 토큰이 있어야만 보입니다.");
   }
   
-  @PostMapping("/google-login")
-  public ResponseEntity<AuthenticationResponse> googleLogin(
-      @RequestBody GoogleLoginRequest request
-  ) {
-      return ResponseEntity.ok(service.googleLogin(request));
-  }
+
 
 }

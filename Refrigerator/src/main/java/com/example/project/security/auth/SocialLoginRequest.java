@@ -18,7 +18,7 @@ public class SocialLoginRequest {
     private String nickname;
     private String ageRange;
     private String jobCategory;
-    private Integer zipCode;
+    private String zipCode;
     private String basicAddress;
     private String detailAddress;
 }

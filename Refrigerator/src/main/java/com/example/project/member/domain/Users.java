@@ -80,7 +80,7 @@ public class Users implements UserDetails {
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
 
-    private Integer zipCode;
+    private String zipCode;
     private String addressBase;
     private String addressDetail;
     private Integer monthlyFoodBudget;

@@ -51,7 +51,7 @@ public class GoogleAuthController {
                     .password(passwordEncoder.encode("google_oauth_user_no_password")) // Encode placeholder password
                     .gender(request.getGender())
                     .age(request.getAge())
-                    .zipcode(request.getZipcode())
+                    .zipCode(request.getZipcode())
                     .addressBase(request.getAddressBase())
                     .addressDetail(request.getAddressDetail())
                     .monthlyFoodBudget(request.getMonthlyFoodBudget())
