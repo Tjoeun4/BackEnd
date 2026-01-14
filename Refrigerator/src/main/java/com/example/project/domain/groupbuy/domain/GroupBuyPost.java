@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.example.project.domain.fridege.domain.FoodCategory;
 import com.example.project.global.controller.BaseTimeEntity;
+import com.example.project.global.neighborhood.Neighborhood;
 import com.example.project.member.domain.Users;
 
 import jakarta.persistence.CascadeType;
@@ -54,6 +55,8 @@ public class GroupBuyPost extends BaseTimeEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupBuyPostImage> images = new ArrayList<>();
     
-    @Column(name = "neighborhood_id", nullable = false)
-    private Long neighborhoodId;
+ // GroupBuyPost.java 수정
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "neighborhood_id", nullable = false)
+    private Neighborhood neighborhood;
 }

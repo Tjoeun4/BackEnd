@@ -2,7 +2,7 @@ package com.example.project.security.auth;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Optional;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,13 +14,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.project.global.neighborhood.Neighborhood;
+import com.example.project.global.neighborhood.NeighborhoodRepository;
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
 import com.example.project.security.config.JwtService;
 import com.example.project.security.token.Token;
 import com.example.project.security.token.TokenRepository;
 import com.example.project.security.token.TokenType;
-import com.example.project.security.user.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,15 +37,18 @@ public class AuthenticationService {
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
   private final RestTemplate restTemplate; // 주입받아서 사용
-  
+  private final NeighborhoodRepository neighborhoodRepository;
   
   
   public AuthenticationResponse register(RegisterRequest request) {
-    var user = Users.builder()
+	  Optional<Neighborhood> neighborhood1 = neighborhoodRepository.findById(request.getNeighborhoodId());
+	  
+	  var user = Users.builder()
         .nickname(request.getNickname())
         .gender(request.getGender())
         .email(request.getEmail())
         .password(passwordEncoder.encode(request.getPassword()))
+        .neighborhood(neighborhood1.get())
         .build();
     var savedUser = repository.save(user);
     var jwtToken = jwtService.generateToken(user);
@@ -143,7 +147,6 @@ public class AuthenticationService {
                           .nickname(request.getNickname())
                           // 아래 필드들은 귀하의 Users 엔티티 컬럼명에 맞춰 수정하세요
                           //.age(request.getAgeRange()) 
-                          .job(request.getJobCategory())
                           .zipCode(request.getZipCode())
                           .address(request.getBasicAddress() + " " + request.getDetailAddress())
                           .build();

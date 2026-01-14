@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.example.project.global.neighborhood.Neighborhood;
 import com.example.project.security.token.Token;
 import com.example.project.security.user.Role;
 
@@ -15,9 +16,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
@@ -50,7 +54,6 @@ public class Users implements UserDetails {
     @Column(length = 1)
     private String gender;
     
-    private String job;
     private Integer age;
 
     @Column(length = 100, unique = true)
@@ -85,6 +88,10 @@ public class Users implements UserDetails {
     private String addressDetail;
     private Integer monthlyFoodBudget;
     private String address;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "neighborhood_id")
+    private Neighborhood neighborhood;
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

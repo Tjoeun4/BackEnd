@@ -21,5 +21,11 @@ public class RegisterRequest {
 	  // 새로 추가된 필드들 (DB 스키마 반영)
 	  private String gender; // M or F
 	  private Integer age;
+	  private String zipcode; // Added
+	  private String addressBase; // Added
+	  private String addressDetail; // Added
+	  private Integer monthlyFoodBudget; // Added
+
+	  private Long neighborhoodId; // 선택한 5자리 동네 ID 추가
 
 }

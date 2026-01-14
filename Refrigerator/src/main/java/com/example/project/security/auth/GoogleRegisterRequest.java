@@ -18,4 +18,7 @@ public class GoogleRegisterRequest {
     private String addressBase; // Added
     private String addressDetail; // Added
     private Integer monthlyFoodBudget; // Added
+    
+  private Long neighborhoodId; // 선택한 5자리 동네 ID 추가
+
 }
