@@ -19,5 +19,5 @@ public class AuthenticationResponse {
   
 //[추가] 프론트엔드로 보낼 사용자 ID
  @JsonProperty("user_id") 
- private Integer userId;
+ private Long userId;
 }

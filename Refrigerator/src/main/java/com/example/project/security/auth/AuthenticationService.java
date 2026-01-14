@@ -53,7 +53,7 @@ public class AuthenticationService {
     return AuthenticationResponse.builder()
         .accessToken(jwtToken)
         .refreshToken(refreshToken)
-        .userId(user.getId()) // ★ 여기 추가: DB에서 조회한 user의 ID를 넣음
+        .userId(user.getUserId()) // ★ 여기 추가: DB에서 조회한 user의 ID를 넣음
         .build();
   }
 
@@ -73,7 +73,7 @@ public class AuthenticationService {
     return AuthenticationResponse.builder()
         .accessToken(jwtToken)
         .refreshToken(refreshToken)
-        .userId(user.getId()) // ★ 여기 추가: DB에서 조회한 user의 ID를 넣음
+        .userId(user.getUserId()) // ★ 여기 추가: DB에서 조회한 user의 ID를 넣음
         .build();
   }
 
@@ -89,7 +89,7 @@ public class AuthenticationService {
   }
 
   private void revokeAllUserTokens(Users user) {
-    var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+    var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getUserId());
     if (validUserTokens.isEmpty())
       return;
     validUserTokens.forEach(token -> {
@@ -161,7 +161,7 @@ public class AuthenticationService {
       return AuthenticationResponse.builder()
               .accessToken(jwtToken)
               .refreshToken(refreshToken)
-              .userId(user.getId())
+              .userId(user.getUserId())
               .build();
   }
 
@@ -243,7 +243,7 @@ public class AuthenticationService {
 	    return AuthenticationResponse.builder()
 	            .accessToken(jwtToken)
 	            .refreshToken(refreshToken)
-	            .userId(user.getId()) // AuthenticationResponse에 추가한 userId
+	            .userId(user.getUserId()) // AuthenticationResponse에 추가한 userId
 	            .build();
 	}
   

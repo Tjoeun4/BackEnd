@@ -14,7 +14,7 @@ import com.example.project.member.domain.Users;
 
 public class ApplicationAuditAware implements AuditorAware<Integer> {
     @Override
-    public Optional<Integer> getCurrentAuditor() {
+    public Optional getCurrentAuditor() {
         Authentication authentication =
                 SecurityContextHolder
                         .getContext()
@@ -27,6 +27,6 @@ public class ApplicationAuditAware implements AuditorAware<Integer> {
         }
 
         Users userPrincipal = (Users) authentication.getPrincipal();
-        return Optional.ofNullable(userPrincipal.getId());
+        return Optional.ofNullable(userPrincipal.getUserId());
     }
 }
