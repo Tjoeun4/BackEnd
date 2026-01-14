@@ -21,6 +21,7 @@ public class EmailAuthService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     // 1. 인증 코드 발송 및 DB 저장
+    @Async
     @Transactional
     public void sendAuthCode(String toEmail) {
         String authCode = String.format("%06d", secureRandom.nextInt(1000000));
@@ -36,8 +37,7 @@ public class EmailAuthService {
         sendEmail(toEmail, authCode);
     }
 
-    // 2. 실제 메일 발송 (비동기 권장)
-    @Async
+    // 2. 실제 메일 발송
     protected void sendEmail(String toEmail, String authCode) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
@@ -46,8 +46,9 @@ public class EmailAuthService {
         
         try {
             mailSender.send(message);
+            log.info("인증 메일 발송 성공: {}", toEmail);
         } catch (Exception e) {
-            log.error("메일 발송 실패: {}", e.getMessage());
+            log.error("메일 발송 실패: toEmail={}", toEmail, e);
         }
     }
 
