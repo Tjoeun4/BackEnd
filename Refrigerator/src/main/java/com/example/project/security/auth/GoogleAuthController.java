@@ -1,5 +1,7 @@
 package com.example.project.security.auth;
 
+import com.example.project.global.neighborhood.Neighborhood;
+import com.example.project.global.neighborhood.NeighborhoodRepository;
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
 import com.example.project.security.config.JwtService;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth/google")
@@ -26,6 +29,7 @@ public class GoogleAuthController {
     private final PasswordEncoder passwordEncoder; // Inject PasswordEncoder
     private final JwtService jwtService; // Inject JwtService
     private final AuthenticationManager authenticationManager; // Already injected
+    private final NeighborhoodRepository neighborhoodRepository;
 
     @PostMapping("/signin")
     public ResponseEntity<GoogleAuthenticationResponse> googleSignIn(@RequestBody GoogleLoginRequest request) {
@@ -44,7 +48,7 @@ public class GoogleAuthController {
             if (usersRepository.findByEmail(request.getEmail()).isPresent()) {
                 throw new IllegalArgumentException("Email already registered.");
             }
-
+            Optional<Neighborhood> neighborhood1 = neighborhoodRepository.findById(request.getNeighborhoodId());
             Users user = Users.builder()
                     .email(request.getEmail())
                     .nickname(request.getNickname() != null ? request.getNickname() : request.getEmail())
@@ -55,6 +59,7 @@ public class GoogleAuthController {
                     .addressBase(request.getAddressBase())
                     .addressDetail(request.getAddressDetail())
                     .monthlyFoodBudget(request.getMonthlyFoodBudget())
+                    .neighborhood(neighborhood1.get())
                     .build();
             usersRepository.save(user);
 
