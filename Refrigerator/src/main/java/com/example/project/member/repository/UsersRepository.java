@@ -8,10 +8,10 @@ import org.springframework.stereotype.Repository;
 import com.example.project.member.domain.Users;
 
 @Repository
-public interface UsersRepository extends JpaRepository<Users, Integer>{
+public interface UsersRepository extends JpaRepository<Users, Long>{
 
 	public Optional<Users> findByEmail(String username);
 
-	public Optional<Users> findById(Long memberId);
+	public Optional<Users> findByUserId(Long userId);
 
 }

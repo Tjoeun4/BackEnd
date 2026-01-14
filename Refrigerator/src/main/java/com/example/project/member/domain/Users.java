@@ -35,21 +35,22 @@ import lombok.NoArgsConstructor;
 public class Users implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_member_id_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_user_id_gen")
     @SequenceGenerator(
-            name = "seq_member_id_gen",
-            sequenceName = "SEQ_MEMBER_ID",
+            name = "seq_user_id_gen",
+            sequenceName = "SEQ_USER_ID",
             allocationSize = 1
     )
-    @Column(name = "memberid")
-    private Integer id;
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(length = 50)
     private String nickname;
 
     @Column(length = 1)
     private String gender;
-
+    
+    private String job;
     private Integer age;
 
     @Column(length = 100, unique = true)
@@ -79,10 +80,11 @@ public class Users implements UserDetails {
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
 
-    private String zipcode;
+    private Integer zipCode;
     private String addressBase;
     private String addressDetail;
     private Integer monthlyFoodBudget;
+    private String address;
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

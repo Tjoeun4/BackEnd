@@ -53,4 +53,7 @@ public class GroupBuyPost extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupBuyPostImage> images = new ArrayList<>();
+    
+    @Column(name = "neighborhood_id", nullable = false)
+    private Long neighborhoodId;
 }

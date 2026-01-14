@@ -60,6 +60,18 @@ dependencies {
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.19.0'
     implementation 'com.google.api-client:google-api-client:2.6.0'
 
+	// 5. python 연결을 위한 설정
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	
+	// 6. 클로바 사용을 위한 의존성 추가
+	implementation 'org.json:json:20231013' // JSON 파싱용
+	implementation 'commons-codec:commons-codec:1.15' // Base64 인코딩용
+
+	// 7. 채팅방 설정을 위한 의존성 추가
+	// WebSocket & STOMP 메시징을 위한 핵심 라이브러리
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    // JSON 데이터 처리를 위한 Jackson (이미 포함되어 있을 확률이 높음)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
 
 }
 
