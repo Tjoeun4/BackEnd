@@ -15,7 +15,6 @@ public class SocialLoginRequest {
     
     // 추가 정보 필드들
     private String email;
-    private String password;     // SNS 유저라도 내부 관리를 위해 필요할 수 있음
     private String nickname;
     private String ageRange;
     private String jobCategory;

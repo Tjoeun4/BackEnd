@@ -42,7 +42,7 @@ public class Users implements UserDetails {
             allocationSize = 1
     )
     @Column(name = "user_id")
-    private Integer id;
+    private Long userId;
 
     @Column(length = 50)
     private String nickname;

@@ -53,7 +53,7 @@ public class AuthenticationService {
     return AuthenticationResponse.builder()
         .accessToken(jwtToken)
         .refreshToken(refreshToken)
-        .userId(user.getId()) // ★ 여기 추가: DB에서 조회한 user의 ID를 넣음
+        .userId(user.getUserId()) // ★ 여기 추가: DB에서 조회한 user의 ID를 넣음
         .build();
   }
 
@@ -73,7 +73,7 @@ public class AuthenticationService {
     return AuthenticationResponse.builder()
         .accessToken(jwtToken)
         .refreshToken(refreshToken)
-        .userId(user.getId()) // ★ 여기 추가: DB에서 조회한 user의 ID를 넣음
+        .userId(user.getUserId()) // ★ 여기 추가: DB에서 조회한 user의 ID를 넣음
         .build();
   }
 
@@ -89,7 +89,7 @@ public class AuthenticationService {
   }
 
   private void revokeAllUserTokens(Users user) {
-    var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+    var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getUserId());
     if (validUserTokens.isEmpty())
       return;
     validUserTokens.forEach(token -> {
@@ -141,7 +141,6 @@ public class AuthenticationService {
                   Users newUser = Users.builder()
                           .email(request.getEmail())
                           .nickname(request.getNickname())
-                          .password(passwordEncoder.encode(request.getPassword() != null ? request.getPassword() : UUID.randomUUID().toString()))
                           // 아래 필드들은 귀하의 Users 엔티티 컬럼명에 맞춰 수정하세요
                           //.age(request.getAgeRange()) 
                           .job(request.getJobCategory())
@@ -162,7 +161,7 @@ public class AuthenticationService {
       return AuthenticationResponse.builder()
               .accessToken(jwtToken)
               .refreshToken(refreshToken)
-              .userId(user.getId())
+              .userId(user.getUserId())
               .build();
   }
 
@@ -223,7 +222,6 @@ public class AuthenticationService {
 	        // 2. 처음 로그인하는 유저라면 회원가입 진행
 	        user = Users.builder()
 	                .email(request.getEmail())
-	                .password(passwordEncoder.encode(request.getPassword())) // 소셜도 내부 로그인을 위해 비번 저장
 	                .nickname(request.getNickname())
 	                .job(request.getJobCategory())
 	                .zipCode(request.getZipCode())
@@ -245,7 +243,7 @@ public class AuthenticationService {
 	    return AuthenticationResponse.builder()
 	            .accessToken(jwtToken)
 	            .refreshToken(refreshToken)
-	            .userId(user.getId()) // AuthenticationResponse에 추가한 userId
+	            .userId(user.getUserId()) // AuthenticationResponse에 추가한 userId
 	            .build();
 	}
   
