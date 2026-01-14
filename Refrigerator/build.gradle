@@ -56,6 +56,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // 5. Google Auth ID Token verification
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.19.0'
+    implementation 'com.google.api-client:google-api-client:2.6.0'
+
 
 }
 
