@@ -23,6 +23,14 @@ public class UsersService {
 
 
 
+    /**
+     * 닉네임 중복 여부 확인
+     * @return 중복이면 true, 사용 가능하면 false
+     */
+    public boolean isNicknameDuplicated(String nickname) {
+        return repository.existsByNickname(nickname);
+    }
+    
     // ================================
     // ❗ 3) 회원 탈퇴 (soft delete)
     // ================================
