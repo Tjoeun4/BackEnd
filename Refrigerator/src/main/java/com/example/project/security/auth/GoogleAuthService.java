@@ -31,7 +31,7 @@ public class GoogleAuthService {
     private final AuthenticationManager authenticationManager; // Spring Security AuthenticationManager
     private final PasswordEncoder passwordEncoder;
 
-    public String authenticateGoogleUser(String idToken) throws GeneralSecurityException, IOException {
+    public GoogleAuthenticationResponse authenticateGoogleUser(String idToken) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), GsonFactory.getDefaultInstance())
                 .setAudience(Collections.singletonList(googleClientId))
                 .build();
@@ -44,6 +44,7 @@ public class GoogleAuthService {
             String name = (String) payload.get("name");
             // String picture = (String) payload.get("picture"); // profilePicture not in Users entity
 
+            boolean isNewUser = false;
             Optional<Users> existingUser = usersRepository.findByEmail(email);
             Users user;
             if (existingUser.isEmpty()) {
@@ -55,6 +56,7 @@ public class GoogleAuthService {
                         // You might want to set a default password or handle it differently for Google users
                         .build();
                 usersRepository.save(user);
+                isNewUser = true;
             } else {
                 user = existingUser.get();
                 // Optionally update user details if needed
@@ -68,7 +70,11 @@ public class GoogleAuthService {
                     )
             );
 
-            return jwtService.generateToken(user);
+            String jwtToken = jwtService.generateToken(user);
+            return GoogleAuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .isNewUser(isNewUser)
+                    .build();
 
         } else {
             throw new IllegalArgumentException("Invalid Google ID Token");

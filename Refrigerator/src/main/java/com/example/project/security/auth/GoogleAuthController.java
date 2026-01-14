@@ -20,11 +20,9 @@ public class GoogleAuthController {
     @PostMapping("/signin")
     public ResponseEntity<GoogleAuthenticationResponse> googleSignIn(@RequestBody GoogleLoginRequest request) {
         try {
-            String jwtToken = googleAuthService.authenticateGoogleUser(request.getIdToken());
-            return ResponseEntity.ok(GoogleAuthenticationResponse.builder().token(jwtToken).build());
-        } catch (GeneralSecurityException | IOException e) {
-            return ResponseEntity.badRequest().body(GoogleAuthenticationResponse.builder().token(null).error(e.getMessage()).build());
-        } catch (IllegalArgumentException e) {
+            GoogleAuthenticationResponse authResponse = googleAuthService.authenticateGoogleUser(request.getIdToken());
+            return ResponseEntity.ok(authResponse);
+        } catch (GeneralSecurityException | IOException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(GoogleAuthenticationResponse.builder().token(null).error(e.getMessage()).build());
         }
     }

@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GoogleAuthenticationResponse {
     private String token;
+    private boolean isNewUser; // Indicates if the user was newly registered
     private String error; // Optional: for conveying error messages
 }
