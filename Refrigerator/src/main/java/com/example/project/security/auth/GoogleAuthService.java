@@ -42,39 +42,38 @@ public class GoogleAuthService {
             GoogleIdToken.Payload payload = googleIdToken.getPayload();
             String email = payload.getEmail();
             String name = (String) payload.get("name");
-            // String picture = (String) payload.get("picture"); // profilePicture not in Users entity
 
-            boolean isNewUser = false;
             Optional<Users> existingUser = usersRepository.findByEmail(email);
-            Users user;
+
             if (existingUser.isEmpty()) {
-                // Register new user
-                user = Users.builder()
-                        .email(email)
-                        .nickname(name != null ? name : email) // Use name if available, else email
-                        .password(passwordEncoder.encode("google_oauth_user_no_password")) // Encode placeholder password
-                        // You might want to set a default password or handle it differently for Google users
+                // User is new: DO NOT save user yet, just return newUser flag.
+                // Frontend will then navigate to GoogleSignUpScreen to collect more info.
+                return GoogleAuthenticationResponse.builder()
+                        .token(null) // No JWT token yet for new users
+                        .newUser(true) // Indicate it's a new user
+                        .email(email) // Pass email for signup screen
+                        .nickname(name) // Pass nickname for signup screen
                         .build();
-                usersRepository.save(user);
-                isNewUser = true;
             } else {
-                user = existingUser.get();
-                // Optionally update user details if needed
+                // User exists: Authenticate and generate JWT token.
+                Users user = existingUser.get();
+
+                // Authenticate the user in Spring Security context
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                user.getEmail(),
+                                "google_oauth_user_no_password" // Use the raw placeholder password for authentication context
+                        )
+                );
+
+                String jwtToken = jwtService.generateToken(user);
+                return GoogleAuthenticationResponse.builder()
+                        .token(jwtToken)
+                        .newUser(false) // Indicate it's an existing user
+                        .email(email) // Include email for consistency
+                        .nickname(name) // Include nickname for consistency
+                        .build();
             }
-
-            // Authenticate the user in Spring Security context
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            user.getEmail(),
-                            "google_oauth_user_no_password" // Use the raw placeholder password for authentication context
-                    )
-            );
-
-            String jwtToken = jwtService.generateToken(user);
-            return GoogleAuthenticationResponse.builder()
-                    .token(jwtToken)
-                    .isNewUser(isNewUser)
-                    .build();
 
         } else {
             throw new IllegalArgumentException("Invalid Google ID Token");
