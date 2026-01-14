@@ -141,7 +141,6 @@ public class AuthenticationService {
                   Users newUser = Users.builder()
                           .email(request.getEmail())
                           .nickname(request.getNickname())
-                          .password(passwordEncoder.encode(request.getPassword() != null ? request.getPassword() : UUID.randomUUID().toString()))
                           // 아래 필드들은 귀하의 Users 엔티티 컬럼명에 맞춰 수정하세요
                           //.age(request.getAgeRange()) 
                           .job(request.getJobCategory())
@@ -223,7 +222,6 @@ public class AuthenticationService {
 	        // 2. 처음 로그인하는 유저라면 회원가입 진행
 	        user = Users.builder()
 	                .email(request.getEmail())
-	                .password(passwordEncoder.encode(request.getPassword())) // 소셜도 내부 로그인을 위해 비번 저장
 	                .nickname(request.getNickname())
 	                .job(request.getJobCategory())
 	                .zipCode(request.getZipCode())
