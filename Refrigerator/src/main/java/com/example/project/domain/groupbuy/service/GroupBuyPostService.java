@@ -1,5 +1,6 @@
 package com.example.project.domain.groupbuy.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,10 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.project.domain.fridege.domain.FoodCategory;
 import com.example.project.domain.fridege.repository.FoodCategoryRepository;
+import com.example.project.domain.groupbuy.domain.GroupBuyParticipant;
 import com.example.project.domain.groupbuy.domain.GroupBuyPost;
 import com.example.project.domain.groupbuy.domain.PostFavorite;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostCreateRequest;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostResponse;
+import com.example.project.domain.groupbuy.repository.GroupBuyParticipantRepository;
 import com.example.project.domain.groupbuy.repository.GroupBuyPostRepository;
 import com.example.project.domain.groupbuy.repository.PostFavoriteRepository;
 import com.example.project.global.neighborhood.Neighborhood;
@@ -32,6 +35,10 @@ public class GroupBuyPostService {
     private final FoodCategoryRepository categoryRepository;
     private final NeighborhoodRepository neighborhoodRepository;
     private final PostFavoriteRepository favoriteRepository;
+    private final GroupBuyParticipantRepository participantRepository;
+    
+    
+    
     /**
      * 공동구매 게시글 생성
      */
@@ -123,5 +130,69 @@ public class GroupBuyPostService {
                     favoriteRepository.save(favorite);
                     return "찜하기 완료";
                 });
+    }
+    
+    /**
+     * 키워드 및 동네 기반 게시글 검색
+     */
+    public List<GroupBuyPostResponse> searchPosts(String keyword, Long neighborhoodId) {
+        return postRepository.findByTitleContainingAndNeighborhood_NeighborhoodIdOrderByCreatedAtDesc(keyword, neighborhoodId)
+                .stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * 특정 동네 내에서 카테고리별로 게시글 필터링 조회
+     */
+    public List<GroupBuyPostResponse> getPostsByCategory(Long neighborhoodId, Long categoryId) {
+        // Repository에 이미 정의된 메서드 활용
+        return postRepository.findAllByNeighborhood_NeighborhoodIdAndCategory_CategoryId(neighborhoodId, categoryId)
+                .stream()
+                .map(this::convertToResponse) // 기존에 만든 변환 메서드 재사용
+                .collect(Collectors.toList());
+    }
+    
+    
+    
+    @Transactional
+    public String joinGroupBuy(Long userId, Long postId) {
+        // 1. 엔티티 조회
+        Users user = usersRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+        GroupBuyPost post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+
+        // 2. 검증: 본인 글 참여 불가
+        if (post.getUser().getUserId().equals(userId)) {
+            return "본인이 작성한 글에는 참여할 수 없습니다.";
+        }
+
+        // 3. 검증: 중복 참여 확인
+        if (participantRepository.existsByUserAndPost(user, post)) {
+            return "이미 참여 중인 공동구매입니다.";
+        }
+
+        // 4. 검증: 인원 마감 확인
+        if (post.getCurrentParticipants() >= post.getMaxParticipants()) {
+            return "모집 인원이 마감되었습니다.";
+        }
+
+        // 5. 참여 정보 저장
+        GroupBuyParticipant participant = GroupBuyParticipant.builder()
+                .user(user)
+                .post(post)
+                .joinedAt(LocalDateTime.now())
+                .build();
+        
+        participantRepository.save(participant);
+        post.incrementParticipants(); // 인원 수 +1
+
+        // 6. 만석 시 상태 변경
+        if (post.getCurrentParticipants() == post.getMaxParticipants()) {
+            post.updateStatus("CLOSED");
+        }
+
+        return "참여 신청이 완료되었습니다.";
     }
 }
