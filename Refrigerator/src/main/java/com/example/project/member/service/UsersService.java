@@ -2,11 +2,11 @@ package com.example.project.member.service;
 
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
@@ -78,5 +78,23 @@ public class UsersService {
 
         // save the new password
         repository.save(user);
+    }
+    
+    
+    /**
+     * 사용자의 FCM 토큰을 데이터베이스에 반영하는 서비스 메서드
+     * @Transactional: 이 메서드 안의 작업이 하나라도 실패하면 DB 수정을 없던 일로 되돌립니다(Rollback).
+     * 작업이 성공적으로 끝나면 자동으로 DB에 변경사항을 저장(Commit)합니다.
+     */
+    @Transactional
+    public void updateFcmToken(Long userId, String fcmToken) {
+        // 1. 전달받은 유저 ID를 이용해 DB에서 해당 사용자를 찾습니다.
+        // .orElseThrow: 만약 해당 ID의 사용자가 DB에 없으면 예외(에러)를 발생시키고 로직을 중단합니다.
+        Users user = repository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다. ID: " + userId));
+                
+        // 2. 조회된 유저 엔티티 객체의 fcmToken 필드 값을 클라이언트가 보내준 새 값으로 수정합니다.
+        // JPA의 '더티 체킹(Dirty Checking)' 기능 덕분에, 필드 값만 바꿔도 트랜잭션 종료 시 DB에 자동으로 반영됩니다.
+        user.updateFcmToken(fcmToken); 
     }
 }
