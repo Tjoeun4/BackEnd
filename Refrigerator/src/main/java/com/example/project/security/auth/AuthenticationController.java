@@ -1,11 +1,10 @@
 package com.example.project.security.auth;
 
-
 import java.io.IOException;
 
-import org.springframework.http.HttpStatus; // Added
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler; // Added
+import org.springframework.security.core.AuthenticationException; // Added
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,7 +43,17 @@ public class AuthenticationController {
   public ResponseEntity<AuthenticationResponse> authenticate(
       @RequestBody AuthenticationRequest request
   ) {
-    return ResponseEntity.ok(service.authenticate(request));
+    try {
+        return ResponseEntity.ok(service.authenticate(request));
+    } catch (AuthenticationException ex) { // Catch AuthenticationException for bad credentials
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            AuthenticationResponse.builder().error("이메일 또는 비밀번호가 올바르지 않습니다.").build()
+        );
+    } catch (Exception e) { // Catch any other unexpected exceptions
+        return ResponseEntity.badRequest().body(
+            AuthenticationResponse.builder().error("로그인 요청에 실패했습니다.").build()
+        );
+    }
   }
 
   @PostMapping("/refresh-token")
