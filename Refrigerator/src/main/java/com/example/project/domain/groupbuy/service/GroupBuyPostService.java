@@ -40,9 +40,9 @@ public class GroupBuyPostService {
         // 1. 관련 엔티티 조회 (존재하지 않으면 예외 발생)
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
-        FoodCategory category = categoryRepository.findById(request.getCategoryId())
+        FoodCategory category = categoryRepository.findByCategoryId(request.getCategoryId())
                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다."));
-        Neighborhood neighborhood = neighborhoodRepository.findById(request.getNeighborhoodId())
+        Neighborhood neighborhood = neighborhoodRepository.findByNeighborhoodId(request.getNeighborhoodId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 지역 정보가 존재하지 않습니다."));
 
         // 2. 게시글 엔티티 빌더를 사용하여 생성
@@ -65,7 +65,7 @@ public class GroupBuyPostService {
      * 특정 동네(시군구)의 게시글 목록 조회
      */
     public List<GroupBuyPostResponse> getPostsByNeighborhood(Long neighborhoodId) {
-        return postRepository.findAllByNeighborhood_IdOrderByCreatedAtDesc(neighborhoodId)
+        return postRepository.findAllByNeighborhood_NeighborhoodIdOrderByCreatedAtDesc(neighborhoodId)
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -102,9 +102,9 @@ public class GroupBuyPostService {
      */
     @Transactional
     public String toggleFavorite(Long userId, Long postId) {
-        Users user = usersRepository.findById(userId)
+        Users user = usersRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
-        GroupBuyPost post = postRepository.findById(postId)
+        GroupBuyPost post = postRepository.findByPostId(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
         // 이미 찜했는지 확인
