@@ -15,12 +15,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "notifications")
 @Getter
+@Builder // 이 어노테이션이 있어야 .builder() 사용 가능
+@AllArgsConstructor // Builder 사용 시 필요
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseTimeEntity {
 
@@ -52,4 +56,10 @@ public class Notification extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
+
+    // 읽음 시간 업데이트 메서드 추가
+    public void updateReadAt(LocalDateTime readAt) {
+        this.readAt = readAt;
+    }
+
 }
