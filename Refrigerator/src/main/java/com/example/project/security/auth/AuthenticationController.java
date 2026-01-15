@@ -3,7 +3,9 @@ package com.example.project.security.auth;
 
 import java.io.IOException;
 
+import org.springframework.http.HttpStatus; // Added
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler; // Added
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +27,17 @@ public class AuthenticationController {
   public ResponseEntity<AuthenticationResponse> register(
       @RequestBody RegisterRequest request
   ) {
-    return ResponseEntity.ok(service.register(request));
+    try {
+      return ResponseEntity.ok(service.register(request));
+    } catch (DuplicateEmailException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+            AuthenticationResponse.builder().error(ex.getMessage()).build()
+        );
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(
+            AuthenticationResponse.builder().error("이미 가입된 이메일 주소입니다. 로그인을 시도해주세요.").build()
+        );
+    }
   }
   
   @PostMapping("/authenticate")
@@ -48,6 +60,4 @@ public class AuthenticationController {
     return ResponseEntity.ok("인증 성공! 이 메시지는 보안 토큰이 있어야만 보입니다.");
   }
   
-
-
 }
