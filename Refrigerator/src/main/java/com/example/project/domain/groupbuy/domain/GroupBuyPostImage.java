@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "groupbuy_post_images")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+
 public class GroupBuyPostImage {
 
     @Id
