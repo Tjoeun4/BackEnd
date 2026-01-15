@@ -61,6 +61,8 @@ public class SecurityConfiguration {
                         req.requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
                                 .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers(GET, "/api/user/check-nickname").permitAll() // 닉네임 중복 체크 허용
+                                .requestMatchers(GET, "/api/neighborhoods/**").permitAll() // 지역코드 검색 허용
                                 .requestMatchers(GET, "/api/route/**").permitAll()
                                 .requestMatchers("/", "/index.html", "/login.html", "/register.html").permitAll() // ★ HTML 페이지 접근 허용
                                 .requestMatchers("/css/**", "/js/**").permitAll() // 정적 자원 허용
