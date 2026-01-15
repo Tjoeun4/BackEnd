@@ -9,6 +9,8 @@ import com.example.project.domain.chat.dto.ChatRoomType;
 import com.example.project.domain.chat.dto.MemberRole;
 import com.example.project.domain.chat.repository.ChatRoomMemberRepository;
 import com.example.project.domain.chat.repository.ChatRoomRepository;
+import com.example.project.domain.groupbuy.domain.GroupBuyPost;
+import com.example.project.domain.groupbuy.repository.GroupBuyPostRepository;
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
 
@@ -22,7 +24,7 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final UsersRepository usersRepository;
-    // private final GroupBuyPostRepository postRepository;
+    private final GroupBuyPostRepository postRepository;
 
     /**
      * 1. 일반 채팅방 생성 (PERSONAL, FAMILY 등)
@@ -47,28 +49,28 @@ public class ChatRoomService {
      * 2. 공구/나눔 전용 채팅방 생성 (GROUP_BUY)
      * 게시글에서 '채팅하기'를 눌렀을 때 게시글 정보와 연동하여 생성
      */
-//    @Transactional
-//    public Long createGroupBuyChatRoom(Long userId, Long postId) {
-//        Users creator = findUserById(userId);
-//        GroupBuyPost post = postRepository.findById(postId)
-//                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
-//
-//        // 공구 방은 게시글 제목을 기본 방 이름으로 설정
-//        ChatRoom chatRoom = ChatRoom.builder()
-//                .type(ChatRoomType.GROUP_BUY)
-//                .post(post)
-//                .roomName("[공구] " + post.getTitle())
-//                .build();
-//        chatRoomRepository.save(chatRoom);
-//
-//        // 방장 등록
-//        saveChatRoomMember(creator, chatRoom, MemberRole.OWNER);
-//        
-//        // 추가 로직: 게시글 작성자(판매자)도 자동으로 이 방에 참여시켜야 한다면 여기서 추가
-//        // saveChatRoomMember(post.getSeller(), chatRoom, MemberRole.PARTICIPANT);
-//
-//        return chatRoom.getRoomId();
-//    }
+    @Transactional
+    public Long createGroupBuyChatRoom(Long userId, Long postId) {
+        Users creator = findUserById(userId);
+        GroupBuyPost post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        // 공구 방은 게시글 제목을 기본 방 이름으로 설정
+        ChatRoom chatRoom = ChatRoom.builder()
+                .type(ChatRoomType.GROUP_BUY)
+                .post(post)
+                .roomName("[공구] " + post.getTitle())
+                .build();
+        chatRoomRepository.save(chatRoom);
+
+        // 방장 등록
+        saveChatRoomMember(creator, chatRoom, MemberRole.OWNER);
+        
+        // 추가 로직: 게시글 작성자(판매자)도 자동으로 이 방에 참여시켜야 한다면 여기서 추가
+        // saveChatRoomMember(post.getSeller(), chatRoom, MemberRole.PARTICIPANT);
+
+        return chatRoom.getRoomId();
+    }
 
     // 공통 로직: 사용자 조회
     private Users findUserById(Long userId) {

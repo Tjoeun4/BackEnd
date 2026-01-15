@@ -20,6 +20,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -27,6 +29,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "groupbuy_posts")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor // Builder 사용을 위해 추가
+@Builder // Builder 패턴 활성화
 public class GroupBuyPost extends BaseTimeEntity {
 
     @Id
@@ -59,4 +63,6 @@ public class GroupBuyPost extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "neighborhood_id", nullable = false)
     private Neighborhood neighborhood;
+
+
 }

@@ -45,13 +45,13 @@ public class ChatRoomController {
      * 2. 공구/나눔 채팅방 생성 (게시글 기반)
      * POST /api/chat/room/group-buy/{postId}
      */
-//    @PostMapping("/room/group-buy/{postId}")
-//    public ResponseEntity<Long> createGroupBuyRoom(
-//            @RequestParam Long userId,
-//            @PathVariable Long postId) {
-//        Long roomId = chatRoomService.createGroupBuyChatRoom(userId, postId);
-//        return ResponseEntity.ok(roomId);
-//    }
+    @PostMapping("/room/group-buy/{postId}")
+    public ResponseEntity<Long> createGroupBuyRoom(
+            @RequestParam Long userId,
+            @PathVariable Long postId) {
+        Long roomId = chatRoomService.createGroupBuyChatRoom(userId, postId);
+        return ResponseEntity.ok(roomId);
+    }
 
     /**
      * 3. 내가 참여 중인 채팅방 목록 조회
