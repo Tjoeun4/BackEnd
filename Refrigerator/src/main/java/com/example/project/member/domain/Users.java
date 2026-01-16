@@ -94,6 +94,9 @@ public class Users implements UserDetails {
     @JoinColumn(name = "neighborhood_id")
     private Neighborhood neighborhood;
     
+    @Column(name = "onboarding_survey_completed", nullable = false)
+    @Builder.Default
+    private Boolean onboardingSurveyCompleted = false;
  // 기존 코드에 필드 추가
     @Column(name = "fcm_token")
     private String fcmToken; // Flutter 앱에서 발급받아 서버로 보내준 토큰 저장

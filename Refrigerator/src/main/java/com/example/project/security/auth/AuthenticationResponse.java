@@ -21,5 +21,8 @@ public class AuthenticationResponse {
     @JsonProperty("user_id")
     private Long userId;
 
+    @JsonProperty("onboarding_survey_completed")
+    private Boolean onboardingSurveyCompleted; // 온보딩 설문 완료 여부
+
     private String error;
 }
