@@ -1,5 +1,6 @@
 package com.example.project.security.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GoogleAuthenticationResponse {
     private String token;
+    @JsonProperty("refresh_token")
+    private String refreshToken;
     private boolean newUser; // Indicates if the user was newly registered (renamed from isNewUser)
     private String email; // Added for new user registration flow
     private String nickname; // Added for new user registration flow
