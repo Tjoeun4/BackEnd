@@ -5,6 +5,9 @@ import com.example.project.global.neighborhood.NeighborhoodRepository;
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
 import com.example.project.security.config.JwtService;
+import com.example.project.security.token.Token;
+import com.example.project.security.token.TokenRepository;
+import com.example.project.security.token.TokenType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +29,7 @@ public class GoogleAuthController {
 
     private final GoogleAuthService googleAuthService;
     private final UsersRepository usersRepository; // Inject UsersRepository
+    private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder; // Inject PasswordEncoder
     private final JwtService jwtService; // Inject JwtService
     private final AuthenticationManager authenticationManager; // Already injected
@@ -61,7 +65,7 @@ public class GoogleAuthController {
                     .monthlyFoodBudget(request.getMonthlyFoodBudget())
                     .neighborhood(neighborhood1.get())
                     .build();
-            usersRepository.save(user);
+            var savedUser = usersRepository.save(user);
 
             // Authenticate the newly registered user
             authenticationManager.authenticate(
@@ -71,10 +75,15 @@ public class GoogleAuthController {
                     )
             );
 
-            String jwtToken = jwtService.generateToken(user);
+            var jwtToken = jwtService.generateToken(user);
+            var refreshToken = jwtService.generateRefreshToken(user);
+            revokeAllUserTokens(user);
+            saveUserToken(savedUser, jwtToken);
+
             return ResponseEntity.ok(
                     GoogleAuthenticationResponse.builder()
                             .token(jwtToken)
+                            .refreshToken(refreshToken)
                             .newUser(false) // 회원가입 완료
                             .build()
             );
@@ -84,5 +93,30 @@ public class GoogleAuthController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(GoogleAuthenticationResponse.builder().token(null).error("Registration failed: " + e.getMessage()).build());
         }
+    }
+
+    private void saveUserToken(Users user, String jwtToken) {
+        var token = Token.builder()
+                .user(user)
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoked(false)
+                .build();
+        tokenRepository.save(token);
+    }
+
+    private void revokeAllUserTokens(Users user) {
+        var validUserTokens =
+                tokenRepository.findAllValidTokenByUser(user.getUserId());
+
+        if (validUserTokens.isEmpty()) return;
+
+        validUserTokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+
+        tokenRepository.saveAll(validUserTokens);
     }
 }

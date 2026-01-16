@@ -3,6 +3,9 @@ package com.example.project.security.auth;
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
 import com.example.project.security.config.JwtService;
+import com.example.project.security.token.Token;
+import com.example.project.security.token.TokenRepository;
+import com.example.project.security.token.TokenType;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -27,6 +30,7 @@ public class GoogleAuthService {
     private String googleClientId;
 
     private final UsersRepository usersRepository;
+    private final TokenRepository tokenRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager; // Spring Security AuthenticationManager
     private final PasswordEncoder passwordEncoder;
@@ -66,9 +70,14 @@ public class GoogleAuthService {
                         )
                 );
 
-                String jwtToken = jwtService.generateToken(user);
+                var jwtToken = jwtService.generateToken(user);
+                var refreshToken = jwtService.generateRefreshToken(user);
+                revokeAllUserTokens(user);
+                saveUserToken(user, jwtToken);
+
                 return GoogleAuthenticationResponse.builder()
                         .token(jwtToken)
+                        .refreshToken(refreshToken)
                         .newUser(false) // Indicate it's an existing user
                         .email(email) // Include email for consistency
                         .nickname(name) // Include nickname for consistency
@@ -78,5 +87,30 @@ public class GoogleAuthService {
         } else {
             throw new IllegalArgumentException("Invalid Google ID Token");
         }
+    }
+
+    private void saveUserToken(Users user, String jwtToken) {
+        var token = Token.builder()
+                .user(user)
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoked(false)
+                .build();
+        tokenRepository.save(token);
+    }
+
+    private void revokeAllUserTokens(Users user) {
+        var validUserTokens =
+                tokenRepository.findAllValidTokenByUser(user.getUserId());
+
+        if (validUserTokens.isEmpty()) return;
+
+        validUserTokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+
+        tokenRepository.saveAll(validUserTokens);
     }
 }
