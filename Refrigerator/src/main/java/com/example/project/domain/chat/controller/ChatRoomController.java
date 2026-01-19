@@ -81,8 +81,8 @@ public class ChatRoomController {
     @DeleteMapping("/room/{roomId}/leave")
     public ResponseEntity<Void> leaveRoom(
             @PathVariable Long roomId,
-            @RequestParam Long userId) {
-        chatService.leaveRoom(roomId, userId);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        chatService.leaveRoom(roomId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 }
