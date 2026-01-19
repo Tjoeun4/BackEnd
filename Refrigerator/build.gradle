@@ -75,6 +75,9 @@ dependencies {
 
 	// 8. 알림을 위한 firebase 설정
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
+	
+	//9. fire base
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
 
 }
 
