@@ -70,6 +70,7 @@ public class AuthenticationService {
 					.accessToken(jwtToken)
 					.refreshToken(refreshToken)
 					.userId(user.getUserId()) // DB에 저장된 user의 ID 반환
+					.onboardingSurveyCompleted(false)
 					.build();
 
 		} catch (DataIntegrityViolationException e) {

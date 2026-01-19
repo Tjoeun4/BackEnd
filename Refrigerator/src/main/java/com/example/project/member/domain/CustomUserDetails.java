@@ -19,13 +19,16 @@ public class CustomUserDetails implements UserDetails {
     private final String nickname;
     private final Role role;
     private final boolean isEnabled;
-
+    private final Long neighborhoodId;
+    
+    
     public CustomUserDetails(Users user) {
         this.userId = user.getUserId();
         this.email = user.getEmail();
         this.nickname = user.getNickname();
         this.role = user.getRole();
         this.isEnabled = "N".equals(user.getDelflag());
+        this.neighborhoodId = user.getNeighborhood().getNeighborhoodId();
         // 비밀번호는 아예 필드로도 받지 않습니다.
     }
 

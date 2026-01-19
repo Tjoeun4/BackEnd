@@ -47,5 +47,14 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
     @Query("SELECT COUNT(m) FROM ChatMessage m WHERE m.room.roomId = :roomId AND m.createdAt > :lastReadAt")
     Long countUnreadMessages(@Param("roomId") Long roomId, @Param("lastReadAt") LocalDateTime lastReadAt);
 
+ // 1대1 개인 채팅방이 이미 존재하는지 찾는 쿼리
+    @Query("SELECT m1.room.roomId FROM ChatRoomMember m1 " +
+           "JOIN ChatRoomMember m2 ON m1.room = m2.room " +
+           "WHERE m1.user.userId = :userId1 " +
+           "AND m2.user.userId = :userId2 " +
+           "AND m1.room.type = 'PERSONAL'")
+    Optional<Long> findPersonalRoomBetweenUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
+	
+	
     // 기존에 에러를 유발하던 deleteByRoomIdAndUserId 등 잘못된 메서드는 삭제했습니다.
 }

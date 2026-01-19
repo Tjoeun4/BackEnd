@@ -40,27 +40,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UsersRepository usersRepository;
 
-    // 채팅방 생성 및 생성자 참여
-    @Transactional
-    public Long createPersonalChatRoom(Long userId, String roomName, ChatRoomType type) { // Long -> Integer
-        Users creator = usersRepository.findByUserId(userId) // Integer 타입으로 조회
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-
-        ChatRoom chatRoom = ChatRoom.builder()
-                .type(type != null ? type : ChatRoomType.PERSONAL)
-                .roomName(roomName)
-                .build();
-        chatRoomRepository.save(chatRoom);
-
-        ChatRoomMember member = ChatRoomMember.builder()
-                .user(creator)
-                .room(chatRoom)
-                .role(MemberRole.OWNER)
-                .build();
-        chatRoomMemberRepository.save(member);
-
-        return chatRoom.getRoomId();
-    }
+    
 
     // 내 채팅방 목록 조회
     public List<ChatRoomResponse> getMyRooms(Long userId) {
