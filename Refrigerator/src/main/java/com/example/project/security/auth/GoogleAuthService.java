@@ -11,6 +11,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value; // 이 부분을 추가하세요
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,10 +25,12 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GoogleAuthService {
 
     @Value("${google.oauth.client-id}")
     private String googleClientId;
+
 
     private final UsersRepository usersRepository;
     private final TokenRepository tokenRepository;
@@ -40,7 +43,9 @@ public class GoogleAuthService {
                 .setAudience(Collections.singletonList(googleClientId))
                 .build();
 
+        log.info("Attempting to verify Google ID token...");
         GoogleIdToken googleIdToken = verifier.verify(idToken);
+        log.info("Google ID token verified successfully.");
 
         if (googleIdToken != null) {
             GoogleIdToken.Payload payload = googleIdToken.getPayload();
@@ -57,7 +62,7 @@ public class GoogleAuthService {
                         .newUser(true) // Indicate it's a new user
                         .email(email) // Pass email for signup screen
                         .nickname(name) // Pass nickname for signup screen
-                        .onboardingSurveyCompleted(existingUser.get().getOnboardingSurveyCompleted()) // 없다고 하고 오류 뜨면 이거 주석처리 하기
+                        .onboardingSurveyCompleted(false) // For new users, this is always false.
                         .build();
             } else {
                 // User exists: Authenticate and generate JWT token.
