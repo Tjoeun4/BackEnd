@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.project.domain.fridege.domain.FoodCategory;
-import com.example.project.domain.fridege.repository.FoodCategoryRepository;
+import com.example.project.domain.fridge.repository.FoodCategoryRepository;
+import com.example.project.domain.fridge.domain.FoodCategory;
 import com.example.project.domain.groupbuy.domain.GroupBuyPost;
 import com.example.project.domain.groupbuy.domain.PostFavorite;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostCreateRequest;
@@ -40,7 +40,7 @@ public class GroupBuyPostService {
         // 1. 관련 엔티티 조회 (존재하지 않으면 예외 발생)
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
-        FoodCategory category = categoryRepository.findByCategoryId(request.getCategoryId())
+        FoodCategory category = categoryRepository.findById(request.getCategoryId())
                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다."));
         Neighborhood neighborhood = neighborhoodRepository.findByNeighborhoodId(request.getNeighborhoodId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 지역 정보가 존재하지 않습니다."));

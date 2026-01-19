@@ -2,7 +2,7 @@ package com.example.project.domain.recipe.domain;
 
 import java.math.BigDecimal;
 
-import com.example.project.domain.fridege.domain.Items;
+import com.example.project.domain.fridge.domain.Items;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
