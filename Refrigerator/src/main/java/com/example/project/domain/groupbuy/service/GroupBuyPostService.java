@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.project.domain.fridege.domain.FoodCategory;
-import com.example.project.domain.fridege.repository.FoodCategoryRepository;
+import com.example.project.domain.fridge.domain.FoodCategory;
+import com.example.project.domain.fridge.repository.FoodCategoryRepository;
 import com.example.project.domain.groupbuy.domain.GroupBuyParticipant;
 import com.example.project.domain.groupbuy.domain.GroupBuyPost;
 import com.example.project.domain.groupbuy.domain.PostFavorite;
