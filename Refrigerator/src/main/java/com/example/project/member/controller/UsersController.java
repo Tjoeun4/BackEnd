@@ -85,4 +85,12 @@ public class UsersController {
         // 5. 작업이 성공적으로 끝났음을 알리는 200 OK 상태 코드를 반환합니다.
         return ResponseEntity.ok().build();
     }
+    
+    // 설문조사 TRUE 로 바꿔주는 함ㅅ
+    @PostMapping("/onboarding/complete")
+    public ResponseEntity<String> completeOnboarding(Principal principal) {
+        service.completeOnboarding(principal);
+        return ResponseEntity.ok("온보딩 설문이 완료되었습니다.");
+    }
+    
 }

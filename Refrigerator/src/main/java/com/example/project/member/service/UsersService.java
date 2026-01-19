@@ -97,4 +97,16 @@ public class UsersService {
         // JPA의 '더티 체킹(Dirty Checking)' 기능 덕분에, 필드 값만 바꿔도 트랜잭션 종료 시 DB에 자동으로 반영됩니다.
         user.updateFcmToken(fcmToken); 
     }
+
+	@Transactional
+	public void completeOnboarding(Principal principal) {
+	    // 1. 현재 로그인한 유저 찾기
+	    Users user = repository.findByEmail(principal.getName())
+	            .orElseThrow(() -> new RuntimeException("유저 정보를 찾을 수 없습니다."));
+	
+	    // 2. 상태 변경
+	    user.setOnboardingSurveyCompleted(true);
+	    
+	    // @Transactional이 붙어있으므로 별도의 save 없이도 변경 감지(Dirty Checking)로 업데이트됩니다.
+	}
 }

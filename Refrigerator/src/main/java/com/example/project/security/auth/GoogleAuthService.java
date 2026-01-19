@@ -57,6 +57,7 @@ public class GoogleAuthService {
                         .newUser(true) // Indicate it's a new user
                         .email(email) // Pass email for signup screen
                         .nickname(name) // Pass nickname for signup screen
+                        .onboardingSurveyCompleted(existingUser.get().getOnboardingSurveyCompleted()) // 없다고 하고 오류 뜨면 이거 주석처리 하기
                         .build();
             } else {
                 // User exists: Authenticate and generate JWT token.
@@ -81,6 +82,7 @@ public class GoogleAuthService {
                         .newUser(false) // Indicate it's an existing user
                         .email(email) // Include email for consistency
                         .nickname(name) // Include nickname for consistency
+                        .onboardingSurveyCompleted(user.getOnboardingSurveyCompleted())
                         .build();
             }
 
