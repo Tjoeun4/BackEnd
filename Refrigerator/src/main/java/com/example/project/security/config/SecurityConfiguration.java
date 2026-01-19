@@ -27,23 +27,28 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-    private static final String[] WHITE_LIST_URL = {"/api/v1/auth/**",
-    		"/api/test",
+	// 인증 없이 접근 가능한 URL 목록
+    private static final String[] WHITE_LIST_URL = {
+            "/api/v1/auth/**",
+            "/api/auth/**",
+            "/api/test",
             "/v2/api-docs",
             "/v3/api-docs",
             "/v3/api-docs/**",
             "/swagger-resources",
             "/swagger-resources/**",
-            "/api/ocr/**", // OCR 경로 추가
             "/configuration/ui",
             "/configuration/security",
             "/swagger-ui/**",
             "/webjars/**",
-            "/pub/chat/message",
-            "/sub/chat/room/**",
-            "/api/chat/**",
-            "/api/neighborhoods/**",
-            "/swagger-ui.html"};
+            "/swagger-ui.html",
+            "/", 
+            "/index.html", 
+            "/login.html", 
+            "/register.html",
+            "/css/**", 
+            "/js/**"
+    };
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutHandler logoutHandler;
@@ -51,23 +56,23 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) // REST API이므로 CSRF 비활성화
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers(WHITE_LIST_URL)
-                                .permitAll()
-                                .requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers(GET, "/api/user/check-nickname").permitAll() // 닉네임 중복 체크 허용
-                                .requestMatchers(GET, "/api/neighborhoods/**").permitAll() // 지역코드 검색 허용
-                                .requestMatchers(GET, "/api/chat/**").permitAll()
+                        req.requestMatchers(WHITE_LIST_URL).permitAll() // 화이트리스트 허용
+                                .requestMatchers(GET, "/api/user/check-nickname").permitAll() // 중복체크 허용
+                                .requestMatchers(GET, "/api/neighborhoods/**").permitAll() // 지역검색 허용
+                                .requestMatchers("/ws-stomp/**").permitAll() // 웹소켓 핸드쉐이크 허용
                                 .requestMatchers(GET, "/api/route/**").permitAll()
-                                .requestMatchers(GET, "/pub/chat/message").permitAll()
-                                .requestMatchers(GET, "/sub/chat/room/**").permitAll()
-                                .requestMatchers("/", "/index.html", "/login.html", "/register.html").permitAll() // ★ HTML 페이지 접근 허용
-                                .requestMatchers("/css/**", "/js/**").permitAll() // 정적 자원 허용
-                                .anyRequest()
-                                .authenticated()
+                                
+                                // ★ 중요: 채팅과 공구 관련 API는 반드시 인증(Token) 필요
+                                // 이렇게 설정해야 @AuthenticationPrincipal에 데이터가 정상적으로 들어옵니다.
+                                .requestMatchers("/api/chat/**").authenticated()
+                                .requestMatchers("/api/group-buy/**").authenticated()
+                                .requestMatchers("/api/user/**").authenticated() // 유저 정보 관련 추가
+                                
+                                .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS)) // 세션 미사용
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout ->
