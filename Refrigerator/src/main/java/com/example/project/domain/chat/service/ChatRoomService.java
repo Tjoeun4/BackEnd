@@ -1,5 +1,7 @@
 package com.example.project.domain.chat.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,21 +28,45 @@ public class ChatRoomService {
     private final UsersRepository usersRepository;
     private final GroupBuyPostRepository postRepository;
 
-    /**
-     * 1. 일반 채팅방 생성 (PERSONAL, FAMILY 등)
-     * 친구 목록에서 대화하기를 누르거나 가족 방을 만들 때 사용
-     */
     @Transactional
-    public Long createPersonalChatRoom(Long userId, String roomName, ChatRoomType type) {
-        Users creator = findUserById(userId);
+    public Long createPersonalChatRoom(Long userId, Long targetId) {
+        // 1. 유저 정보 조회
+        Users me = findUserById(userId);
+        Users target = findUserById(targetId);
 
+     // 1. [추가] 이미 두 사람 사이에 개인 채팅방이 있는지 먼저 확인
+        // 레포지토리에 @Query로 작성했던 그 메서드를 사용합니다.
+        Optional<Long> existingRoomId = chatRoomMemberRepository.findPersonalRoomBetweenUsers(userId, targetId);
+        
+        // 만약 방이 이미 있다면, 새로 만들지 않고 기존 방 ID를 바로 반환합니다.
+        if (existingRoomId.isPresent()) {
+            return existingRoomId.get();
+        }
+        
+        
+        // 2. 채팅방 객체 생성 (방 자체 정보만!)
         ChatRoom chatRoom = ChatRoom.builder()
-                .type(type) // PERSONAL 또는 FAMILY
-                .roomName(roomName)
+                .type(ChatRoomType.PERSONAL)
+                .roomName(target.getNickname() + "님과의 대화") // 기본 방 이름 설정
                 .build();
         chatRoomRepository.save(chatRoom);
 
-        saveChatRoomMember(creator, chatRoom, MemberRole.OWNER);
+        // 3. ChatRoomMember에 '나'와 '상대방'을 각각 저장 (이게 포인트!)
+        // 나를 OWNER로 등록
+        ChatRoomMember myMember = ChatRoomMember.builder()
+                .user(me)
+                .room(chatRoom)
+                .role(MemberRole.OWNER)
+                .build();
+        chatRoomMemberRepository.save(myMember);
+
+        // 상대방을 PARTICIPANT로 등록
+        ChatRoomMember targetMember = ChatRoomMember.builder()
+                .user(target)
+                .room(chatRoom)
+                .role(MemberRole.PARTICIPANT)
+                .build();
+        chatRoomMemberRepository.save(targetMember);
 
         return chatRoom.getRoomId();
     }
@@ -72,6 +98,18 @@ public class ChatRoomService {
         return chatRoom.getRoomId();
     }
 
+    // 방 나가기
+    @Transactional
+    public void leaveRoom(Long roomId, Long userId) {
+        chatRoomMemberRepository.deleteByRoomRoomIdAndUserUserId(roomId, userId);
+        
+        // 만약 방에 남은 인원이 없다면 방 삭제 로직 추가 가능
+        if (!chatRoomMemberRepository.existsByRoomRoomId(roomId)) {
+            chatRoomRepository.deleteById(roomId);
+        }
+    }
+    
+    
     // 공통 로직: 사용자 조회
     private Users findUserById(Long userId) {
         return usersRepository.findByUserId(userId)

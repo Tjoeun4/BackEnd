@@ -39,8 +39,10 @@ public class GroupBuyPostController {
 
     // 2. 동네별 목록 조회
     @GetMapping
-    public ResponseEntity<List<GroupBuyPostResponse>> getPosts(@RequestParam Long neighborhoodId) {
-        List<GroupBuyPostResponse> posts = groupBuyPostService.getPostsByNeighborhood(neighborhoodId);
+    public ResponseEntity<List<GroupBuyPostResponse>> getPosts(
+    		@AuthenticationPrincipal CustomUserDetails userDetails
+    		) {
+        List<GroupBuyPostResponse> posts = groupBuyPostService.getPostsByNeighborhood(userDetails.getNeighborhoodId());
         return ResponseEntity.ok(posts);
     }
 
@@ -52,9 +54,12 @@ public class GroupBuyPostController {
 
     // 4. 찜하기 토글
     @PostMapping("/{postId}/favorite")
-    public ResponseEntity<String> toggleFavorite(@PathVariable Long postId) {
+    public ResponseEntity<String> toggleFavorite(
+    		@PathVariable Long postId,
+    		@AuthenticationPrincipal CustomUserDetails userDetails
+    		) {
         // 임시 유저 ID 사용
-        String message = groupBuyPostService.toggleFavorite(1L, postId);
+        String message = groupBuyPostService.toggleFavorite(userDetails.getUserId(), postId);
         return ResponseEntity.ok(message);
     }
     
@@ -62,17 +67,19 @@ public class GroupBuyPostController {
     @GetMapping("/search")
     public ResponseEntity<List<GroupBuyPostResponse>> searchPosts(
             @RequestParam String keyword,
-            @RequestParam Long neighborhoodId) {
-        List<GroupBuyPostResponse> results = groupBuyPostService.searchPosts(keyword, neighborhoodId);
+    		@AuthenticationPrincipal CustomUserDetails userDetails
+            
+    		) {
+        List<GroupBuyPostResponse> results = groupBuyPostService.searchPosts(keyword, userDetails.getNeighborhoodId());
         return ResponseEntity.ok(results);
     }
     
  // 6. 동네별 + 카테고리별 필터링 조회
     @GetMapping("/filter")
     public ResponseEntity<List<GroupBuyPostResponse>> getPostsByCategory(
-            @RequestParam Long neighborhoodId,
-            @RequestParam Long categoryId) {
-        List<GroupBuyPostResponse> posts = groupBuyPostService.getPostsByCategory(neighborhoodId, categoryId);
+    		@AuthenticationPrincipal CustomUserDetails userDetails,
+    		@RequestParam Long categoryId) {
+        List<GroupBuyPostResponse> posts = groupBuyPostService.getPostsByCategory(userDetails.getNeighborhoodId(), categoryId);
         return ResponseEntity.ok(posts);
     }
     
