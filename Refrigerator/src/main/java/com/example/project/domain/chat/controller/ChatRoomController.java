@@ -32,7 +32,6 @@ public class ChatRoomController {
     private final ChatService chatService;
 
     
- // 중복된 @PostMapping("/room/personal") 메서드가 있다면 하나만 남기고 지워야 합니다.
     @PostMapping("/room/personal")
     public ResponseEntity<Long> createPersonalRoom(
             @RequestParam Long userId,
