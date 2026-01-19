@@ -1,15 +1,6 @@
 package com.example.project.security.config;
 
-import static com.example.project.security.user.Role.ADMIN;
-import static com.example.project.security.user.Role.MANAGER;
-import static com.example.project.security.user.Permission.ADMIN_READ;
-import static com.example.project.security.user.Permission.ADMIN_UPDATE;
-import static com.example.project.security.user.Permission.ADMIN_DELETE;
-import static com.example.project.security.user.Permission.ADMIN_CREATE;
-import static com.example.project.security.user.Permission.MANAGER_READ;
-import static com.example.project.security.user.Permission.MANAGER_UPDATE;
-import static com.example.project.security.user.Permission.MANAGER_DELETE;
-import static com.example.project.security.user.Permission.MANAGER_CREATE;
+
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -48,6 +39,10 @@ public class SecurityConfiguration {
             "/configuration/security",
             "/swagger-ui/**",
             "/webjars/**",
+            "/pub/chat/message",
+            "/sub/chat/room/**",
+            "/api/chat/**",
+            "/api/neighborhoods/**",
             "/swagger-ui.html"};
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
@@ -63,7 +58,10 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers(GET, "/api/user/check-nickname").permitAll() // 닉네임 중복 체크 허용
                                 .requestMatchers(GET, "/api/neighborhoods/**").permitAll() // 지역코드 검색 허용
+                                .requestMatchers(GET, "/api/chat/**").permitAll()
                                 .requestMatchers(GET, "/api/route/**").permitAll()
+                                .requestMatchers(GET, "/pub/chat/message").permitAll()
+                                .requestMatchers(GET, "/sub/chat/room/**").permitAll()
                                 .requestMatchers("/", "/index.html", "/login.html", "/register.html").permitAll() // ★ HTML 페이지 접근 허용
                                 .requestMatchers("/css/**", "/js/**").permitAll() // 정적 자원 허용
                                 .anyRequest()
