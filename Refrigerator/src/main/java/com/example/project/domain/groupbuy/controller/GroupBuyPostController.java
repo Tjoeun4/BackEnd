@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostCreateRequest;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostResponse;
 import com.example.project.domain.groupbuy.service.GroupBuyPostService;
-import com.example.project.member.domain.CustomUserDetails;
+import com.example.project.member.domain.Users;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +30,7 @@ public class GroupBuyPostController {
     @PostMapping
     public ResponseEntity<Long> createPost(
     		@RequestBody GroupBuyPostCreateRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails // 1. 보안 객체로 변경
+            @AuthenticationPrincipal Users userDetails // 1. 보안 객체로 변경
     		) {
     	Long currentUserId = userDetails.getUserId();
         Long postId = groupBuyPostService.createPost(currentUserId, request);
@@ -40,9 +40,9 @@ public class GroupBuyPostController {
     // 2. 동네별 목록 조회
     @GetMapping
     public ResponseEntity<List<GroupBuyPostResponse>> getPosts(
-    		@AuthenticationPrincipal CustomUserDetails userDetails
+    		@AuthenticationPrincipal Users userDetails
     		) {
-        List<GroupBuyPostResponse> posts = groupBuyPostService.getPostsByNeighborhood(userDetails.getNeighborhoodId());
+        List<GroupBuyPostResponse> posts = groupBuyPostService.getPostsByNeighborhood(userDetails.getNeighborhood().getNeighborhoodId());
         return ResponseEntity.ok(posts);
     }
 
@@ -56,7 +56,7 @@ public class GroupBuyPostController {
     @PostMapping("/{postId}/favorite")
     public ResponseEntity<String> toggleFavorite(
     		@PathVariable Long postId,
-    		@AuthenticationPrincipal CustomUserDetails userDetails
+    		@AuthenticationPrincipal Users userDetails
     		) {
         // 임시 유저 ID 사용
         String message = groupBuyPostService.toggleFavorite(userDetails.getUserId(), postId);
@@ -67,19 +67,19 @@ public class GroupBuyPostController {
     @GetMapping("/search")
     public ResponseEntity<List<GroupBuyPostResponse>> searchPosts(
             @RequestParam String keyword,
-    		@AuthenticationPrincipal CustomUserDetails userDetails
+    		@AuthenticationPrincipal Users userDetails
             
     		) {
-        List<GroupBuyPostResponse> results = groupBuyPostService.searchPosts(keyword, userDetails.getNeighborhoodId());
+        List<GroupBuyPostResponse> results = groupBuyPostService.searchPosts(keyword, userDetails.getNeighborhood().getNeighborhoodId());
         return ResponseEntity.ok(results);
     }
     
  // 6. 동네별 + 카테고리별 필터링 조회
     @GetMapping("/filter")
     public ResponseEntity<List<GroupBuyPostResponse>> getPostsByCategory(
-    		@AuthenticationPrincipal CustomUserDetails userDetails,
+    		@AuthenticationPrincipal Users userDetails,
     		@RequestParam Long categoryId) {
-        List<GroupBuyPostResponse> posts = groupBuyPostService.getPostsByCategory(userDetails.getNeighborhoodId(), categoryId);
+        List<GroupBuyPostResponse> posts = groupBuyPostService.getPostsByCategory(userDetails.getNeighborhood().getNeighborhoodId(), categoryId);
         return ResponseEntity.ok(posts);
     }
     
@@ -88,7 +88,7 @@ public class GroupBuyPostController {
  // 수정된 공동구매 참여 API
     @PostMapping("/{postId}/join")
     public ResponseEntity<String> joinGroupBuy(
-        @AuthenticationPrincipal CustomUserDetails userDetails, // 1. 보안 객체로 변경
+        @AuthenticationPrincipal Users userDetails, // 1. 보안 객체로 변경
         @PathVariable Long postId
     ) {
         // 2. userDetails에서 안전하게 userId를 추출
