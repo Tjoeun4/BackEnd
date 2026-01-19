@@ -64,5 +64,24 @@ public class GroupBuyPost extends BaseTimeEntity {
     @JoinColumn(name = "neighborhood_id", nullable = false)
     private Neighborhood neighborhood;
 
+ // GroupBuyPost.java 내부에 추가
+    @Builder.Default
+    @Column(nullable = false)
+    private int maxParticipants = 15; // 기본 모집 정원 15명
 
+    @Builder.Default
+    @Column(nullable = false)
+    private int currentParticipants = 1; // 현재 참여 인원 (작성자 포함 기본 1명)
+
+    // 인원 증가 메서드
+    public void incrementParticipants() {
+        this.currentParticipants++;
+    }
+
+    // 상태 변경 메서드
+    public void updateStatus(String status) {
+        this.status = status;
+    }
+    
+    
 }

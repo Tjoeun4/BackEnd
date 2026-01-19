@@ -16,9 +16,9 @@ public class EmailAuthController {
     private final EmailAuthService emailAuthService;
 
     @PostMapping("/email-request")
-    public ResponseEntity<String> requestEmail(@RequestParam("email") String email) { // ("email") 추가
+    public ResponseEntity<Boolean> requestEmail(@RequestParam("email") String email) { // ("email") 추가
         emailAuthService.sendAuthCode(email);
-        return ResponseEntity.ok("인증 메일이 발송되었습니다.");
+        return ResponseEntity.ok(true);
     }
 
     @PostMapping("/email-verify")

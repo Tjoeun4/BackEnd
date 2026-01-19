@@ -73,6 +73,9 @@ dependencies {
     // JSON 데이터 처리를 위한 Jackson (이미 포함되어 있을 확률이 높음)
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+	// 8. 알림을 위한 firebase 설정
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
+
 }
 
 tasks.named('test') {
