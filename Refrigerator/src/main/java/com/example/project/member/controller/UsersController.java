@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.project.member.domain.CustomUserDetails;
+import com.example.project.member.domain.Users;
 import com.example.project.member.service.UsersService;
 import com.example.project.security.user.ChangePasswordRequest;
 
@@ -73,7 +73,7 @@ public class UsersController {
      */
     @PostMapping("/fcm-token")
     public ResponseEntity<Void> updateFcmToken(
-        @AuthenticationPrincipal CustomUserDetails userDetails, // 1. 현재 로그인한 유저의 정보를 가져옵니다.
+        @AuthenticationPrincipal Users userDetails, // 1. 현재 로그인한 유저의 정보를 가져옵니다.
         @RequestBody Map<String, String> body // 2. 프론트엔드가 보낸 JSON 본문을 Map 객체로 변환하여 받습니다.
     ) {
         // 3. Map 객체 안에서 "fcmToken"이라는 Key를 가진 값(문자열 토큰)을 추출합니다.
