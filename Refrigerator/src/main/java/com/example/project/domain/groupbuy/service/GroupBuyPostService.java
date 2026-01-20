@@ -62,6 +62,8 @@ public class GroupBuyPostService {
                 .priceTotal(request.getPriceTotal())
                 .meetPlaceText(request.getMeetPlaceText())
                 .status("OPEN") // 기본값 설정
+                .startdate(request.getStartdate())
+                .enddate(request.getEnddate())
                 .build();
 
         // 3. 저장 및 ID 반환

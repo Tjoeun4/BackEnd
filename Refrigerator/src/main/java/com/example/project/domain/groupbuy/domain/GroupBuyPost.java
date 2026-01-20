@@ -1,5 +1,6 @@
 package com.example.project.domain.groupbuy.domain;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +53,10 @@ public class GroupBuyPost extends BaseTimeEntity {
 
     private int priceTotal;
     private String meetPlaceText;
+    
+    private LocalDate startdate;
+    private LocalDate enddate;
+    
     
     @Column(nullable = false)
     private String status = "OPEN";

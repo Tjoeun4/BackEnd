@@ -1,5 +1,7 @@
 package com.example.project.domain.groupbuy.dto;
 
+import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,4 +16,7 @@ public class GroupBuyPostCreateRequest {
     private String meetPlaceText;
     private Long categoryId;
     private Long neighborhoodId;
+    private LocalDate startdate;
+    private LocalDate enddate;
+    
 }
