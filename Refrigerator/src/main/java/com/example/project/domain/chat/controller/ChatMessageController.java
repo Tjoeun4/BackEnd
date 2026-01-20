@@ -37,16 +37,7 @@ public class ChatMessageController {
         messagingTemplate.convertAndSend("/sub/chat/room/" + request.getRoomId(), response);
     }
 
-    /**
-     * 2. [추가] 과거 채팅 내역 불러오기 (REST API 연동)
-     * 앱에서 방 입장 시 "가장 먼저" 호출해야 함
-     */
-    @GetMapping("/api/chat/room/{roomId}/messages")
-    @ResponseBody // 일반 HTTP 응답을 위해 추가
-    public List<ChatMessageResponse> getMessages(@PathVariable Long roomId) {
-        // 서비스에서 DB 데이터를 최신순으로 가져옴
-        return chatService.getMessages(roomId);
-    }
+
 
     /**
      * 3. [추가] 채팅방 입장 알림 (선택 사항)
