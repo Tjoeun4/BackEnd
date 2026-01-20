@@ -14,12 +14,13 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
 
         registry.addMapping("/**") 
-                .allowedOrigins(
-                		
-                        "http://localhost:5173",  // Vite (React)
-                        "http://172.16.250.69:5173",
-                        "http://localhost:3000"   // CRA (혹시 사용하는 경우)
-                )
+        .allowedOrigins(
+	                "http://localhost:5173",   // Vite
+	                "http://localhost:3000",   // React
+	                "http://localhost:8080",   // Flutter Web (기본값인 경우가 많음)
+	                "http://localhost:50123",   // 실제 플러터 실행 시 터미널에 뜨는 포트 번호 확인 필요
+	                "http://localhost:49622"  // <--- 현재 플러터 웹 주소 추가!
+        		)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("*")
