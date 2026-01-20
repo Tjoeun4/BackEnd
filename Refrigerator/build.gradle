@@ -74,6 +74,15 @@ dependencies {
 	// 8. 알림을 위한 firebase 설정
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
 	
+    // 다양한 조건을 만족시키는 쿼리를 만들기 위한 라이브러리 
+	// 9. Querydsl 라이브러리
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+    
+    // 10. Querydsl이 사용할 Jakarta Persistence API
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	
 
 }
 
