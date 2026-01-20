@@ -16,6 +16,12 @@ public class HashidToLongConverter implements Converter<String, Long> {
     @Override
     public Long convert(String source) {
         try {
+        	// 1. 먼저 숫자 형태인지 확인 (Postman 테스트용)
+            if (source.matches("^[0-9]+$")) {
+            	System.out.println("postman test");
+                return Long.parseLong(source);
+            }
+        	
             long[] decoded = hashids.decode(source);
             if (decoded.length > 0) {
                 System.out.println("✅ 복호화 성공: " + source + " -> " + decoded[0]);

@@ -16,6 +16,11 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     // 정렬 기준은 BaseTimeEntity의 생성 시간(createdAt)을 사용합니다.
     List<ChatMessage> findAllByRoomRoomIdOrderByCreatedAtAsc(Long roomId);
     Slice<ChatMessage> findAllByRoomRoomIdOrderByCreatedAtDesc(Long roomId, Pageable pageable);
+	
+    List<ChatMessage> findByRoomRoomIdOrderByCreatedAtAsc(Long roomId);
+ // 미래의 업그레이드 버전 예시
+ // Slice<ChatMessage> findByRoomRoomId(Long roomId, Pageable pageable);
+    
     
     // (선택) 최신 메시지 50개만 가져오기 (성능 최적화용)
     // List<ChatMessage> findTop50ByRoomRoomIdOrderByCreatedAtDesc(Long roomId);

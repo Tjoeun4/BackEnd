@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,11 +35,16 @@ public class ChatRoomController {
 
     
  // 1. 개인 채팅방 생성 (내 ID는 토큰에서, 상대 ID만 받음)
-    @PostMapping("/room/personal")
+    @PostMapping("/room/personal/{targetId}") // 경로에 변수 추가
     public ResponseEntity<Long> createPersonalRoom(
-            @AuthenticationPrincipal Users userDetails,
-            @RequestParam Long targetId) { // roomName 대신 상대방 targetId를 받는 것이 더 명확함
-        Long roomId = chatRoomService.createPersonalChatRoom(userDetails.getUserId(), targetId);
+            @AuthenticationPrincipal Users userDetails, 
+            @PathVariable("targetId") Long targetId) { // @RequestBody 대신 @PathVariable 사용
+        
+        // 로그를 찍어 실제 값이 들어오는지 확인해보세요
+        System.out.println("로그인 유저 ID: " + userDetails.getUserId());
+        System.out.println("상대방 ID (PathVariable): " + targetId);
+        
+        Long roomId = this.chatRoomService.createPersonalChatRoom(userDetails.getUserId(), targetId);
         return ResponseEntity.ok(roomId);
     }
 
