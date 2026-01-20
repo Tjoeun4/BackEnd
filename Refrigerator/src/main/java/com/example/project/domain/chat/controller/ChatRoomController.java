@@ -52,7 +52,7 @@ public class ChatRoomController {
     @PostMapping("/room/group-buy/{postId}")
     public ResponseEntity<Long> createGroupBuyRoom(
             @AuthenticationPrincipal Users userDetails,
-            @PathVariable Long postId) {
+            @PathVariable("postId") Long postId) {
         Long roomId = chatRoomService.createGroupBuyChatRoom(userDetails.getUserId(), postId);
         return ResponseEntity.ok(roomId);
     }
@@ -73,7 +73,7 @@ public class ChatRoomController {
      */
     @GetMapping("/room/{roomId}")
     public ResponseEntity<ChatHistoryResponse> getChatHistory(
-            @PathVariable Long roomId,
+            @PathVariable("roomId") Long roomId,
             @AuthenticationPrincipal Users userDetails,
             @PageableDefault(size = 30) Pageable pageable) {
         // 방 입장 시 읽음 처리 로직 포함
@@ -85,7 +85,7 @@ public class ChatRoomController {
      */
     @DeleteMapping("/room/{roomId}/leave")
     public ResponseEntity<Void> leaveRoom(
-            @PathVariable Long roomId,
+            @PathVariable("roomId") Long roomId,
             @AuthenticationPrincipal Users userDetails) {
         chatService.leaveRoom(roomId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
