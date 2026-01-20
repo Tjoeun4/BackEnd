@@ -20,7 +20,7 @@ public class ChatRestController {
     private final ChatService chatService;
 
     @GetMapping("/room/{roomId}/messages")
-    public ResponseEntity<List<ChatMessageResponse>> getHistory(@PathVariable Long roomId) {
+    public ResponseEntity<List<ChatMessageResponse>> getHistory(@PathVariable("roomId") Long roomId) {
         return ResponseEntity.ok(chatService.getMessages(roomId));
     }
 }
