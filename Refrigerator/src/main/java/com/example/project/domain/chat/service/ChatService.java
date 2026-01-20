@@ -122,6 +122,22 @@ public class ChatService {
     }
     
     
+    
+    /**
+     * 특정 채팅방의 과거 메시지 전체 조회
+     */
+    @Transactional(readOnly = true)
+    public List<ChatMessageResponse> getMessages(Long roomId) {
+        // 1. DB에서 해당 방의 메시지 리스트 조회
+        List<ChatMessage> messages = chatMessageRepository.findByRoomRoomIdOrderByCreatedAtAsc(roomId);
+
+        // 2. Entity -> Response DTO 변환 후 반환
+        return messages.stream()
+                .map(ChatMessageResponse::fromEntity)
+                .toList();
+    }
+    
+    
 //    @Transactional
 //    public Long createGroupBuyChatRoom(Long userId, Long postId) {
 //        Users creator = usersRepository.findById(userId).orElseThrow();
