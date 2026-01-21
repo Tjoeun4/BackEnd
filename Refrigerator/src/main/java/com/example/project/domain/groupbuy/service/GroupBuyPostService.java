@@ -138,12 +138,12 @@ public class GroupBuyPostService {
      * 키워드 및 동네 기반 게시글 검색
      */
     public List<GroupBuyPostResponse> searchPosts(String keyword, Long neighborhoodId) {
-        return postRepository.findByTitleContainingAndNeighborhood_NeighborhoodIdOrderByCreatedAtDesc(keyword, neighborhoodId)
+        // 키워드가 비어있을 경우 전체 검색 혹은 예외 처리 로직 추가 가능
+        return postRepository.searchByKeywordAndNeighborhood(keyword, neighborhoodId)
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
-    
     /**
      * 특정 동네 내에서 카테고리별로 게시글 필터링 조회
      */

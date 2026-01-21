@@ -192,79 +192,59 @@ public class AuthenticationService {
 		}
 	}
 
-	/**
-	 * 공통 SNS 로그인 처리 (구글, 카카오 등)
-	 */
-	public AuthenticationResponse socialLogin(SocialLoginRequest request) {
 
-		// 1. (선택사항)
-		// idToken을 사용해 구글/카카오 서버에 토큰 유효성 검증을 추가할 수 있음
-		// 현재는 클라이언트가 전달한 정보를 신뢰하는 구조
+	public AuthenticationResponse quickRegister(AuthenticationRequest request) {
+	    // 1. 관리자 생성용 기본 동네 설정 (예: ID가 1인 동네를 기본값으로 설정하거나 DB에서 하나 가져옴)
+	    // 만약 Neighborhood가 필수라면 아래처럼 기본값을 찾아 넣어줘야 합니다.
+	    Neighborhood defaultNeighborhood = neighborhoodRepository.findById(1L)
+	            .orElseThrow(() -> new RuntimeException("기본 동네 정보가 없습니다."));
 
-		// 2. 이메일 기준으로 사용자 조회, 없으면 신규 회원 생성
-		var user = repository.findByEmail(request.getEmail()).orElseGet(() -> {
-			Users newUser = Users.builder().email(request.getEmail()).nickname(request.getNickname())
-					// Users 엔티티 컬럼 구조에 맞게 수정 필요
-					// .age(request.getAgeRange())
-					.zipCode(request.getZipCode()).address(request.getBasicAddress() + " " + request.getDetailAddress())
-					.build();
-			return repository.save(newUser);
-		});
+	    // 2. 회원 엔티티 생성 (필수 필드들은 임시값으로 채움)
+	    var user = Users.builder()
+	    		.email(request.getEmail())
+	            .password(passwordEncoder.encode(request.getPassword()))
+	            .nickname("관리자생성_" + System.currentTimeMillis()) // 중복 방지
+	            .gender("F")            
+	            .age(0)                   // 하드코딩: 0세
+	            .zipCode("00000")         // 하드코딩: 기본 우편번호
+	            .addressBase("서울시")     // 하드코딩: 기본 주소
+	            .addressDetail("상세주소 없음") // 하드코딩
+	            .neighborhood(defaultNeighborhood)
+	            .onboardingSurveyCompleted(false)
+	            .build();
 
-		// 3. 기존 JWT 발급 로직 재사용
-		var jwtToken = jwtService.generateToken(user);
-		var refreshToken = jwtService.generateRefreshToken(user);
+	    
+	    
+	    try {
+	        // 3. 사용자 저장
+	        var savedUser = repository.save(user);
 
-		// 기존 토큰 만료 처리 후 새 토큰 저장
-		revokeAllUserTokens(user);
-		saveUserToken(user, jwtToken);
+	        // 4. JWT 토큰 및 리프레시 토큰 생성 (로그인 세션 유지용)
+	        var jwtToken = jwtService.generateToken(savedUser);
+	        var refreshToken = jwtService.generateRefreshToken(savedUser);
 
-		return AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken)
-				.userId(user.getUserId()).build();
+	        // 5. 토큰 저장 (기존 saveUserToken 메서드 활용)
+	        saveUserToken(savedUser, jwtToken);
+
+	        return AuthenticationResponse.builder()
+	                .accessToken(jwtToken)
+	                .refreshToken(refreshToken)
+	                .userId(savedUser.getUserId())
+	                .onboardingSurveyCompleted(false)
+	                .build();
+
+	    } catch (DataIntegrityViolationException e) {
+	        // 이메일 중복 체크 로직 (기존 register와 동일)
+	        Throwable rootCause = e.getRootCause();
+	        if (rootCause instanceof SQLException) {
+	            SQLException sqlEx = (SQLException) rootCause;
+	            if (sqlEx.getErrorCode() == 1 || (sqlEx.getMessage() != null && sqlEx.getMessage().contains("EMAIL"))) {
+	                throw new DuplicateEmailException("이미 가입된 이메일 주소입니다.");
+	            }
+	        }
+	        throw e;
+	    }
 	}
+	
 
-	/**
-	 * 카카오 사용자 정보 조회
-	 */
-	private SocialUserInfo getKakaoUserInfo(String token) {
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setBearerAuth(token);
-
-		ResponseEntity<Map> response = restTemplate.exchange("https://kapi.kakao.com/v2/user/me", HttpMethod.GET,
-				new HttpEntity<>(headers), Map.class);
-
-		Map<String, Object> body = response.getBody();
-		Map<String, Object> kakaoAccount = (Map<String, Object>) body.get("kakao_account");
-		Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-
-		return new SocialUserInfo((String) kakaoAccount.get("email"), (String) profile.get("nickname"));
-	}
-
-	/**
-	 * 구글 사용자 정보 조회
-	 */
-	private SocialUserInfo getGoogleUserInfo(String token) {
-
-		RestTemplate restTemplate = new RestTemplate();
-
-		// 구글 사용자 정보 조회 엔드포인트
-		String url = "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + token;
-
-		ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-
-		Map<String, Object> body = response.getBody();
-
-		return new SocialUserInfo((String) body.get("email"), (String) body.get("name"));
-	}
-
-	/**
-	 * SNS 로그인 사용자 정보를 담기 위한 내부 헬퍼 클래스
-	 */
-	@lombok.Getter
-	@lombok.AllArgsConstructor
-	private static class SocialUserInfo {
-		private String email;
-		private String nickname;
-	}
 }

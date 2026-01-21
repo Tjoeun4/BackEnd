@@ -43,7 +43,7 @@ public class Expense extends BaseTimeEntity {
     @Column(nullable = false)
     private Category category = Category.ETC;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 1000)
     private String memo; // null 허용
 
     @ManyToOne(fetch = FetchType.LAZY)

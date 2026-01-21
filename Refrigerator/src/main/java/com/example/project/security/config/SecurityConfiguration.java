@@ -66,6 +66,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(GET, "/api/neighborhoods/**").permitAll() // 지역검색 허용
                                 .requestMatchers("/ws-stomp/**").permitAll() // 웹소켓 핸드쉐이크 허용
                                 .requestMatchers(GET, "/api/route/**").permitAll()
+                                .requestMatchers("/api/ocr/**").permitAll()
                                 
                                 // ★ 중요: 채팅과 공구 관련 API는 반드시 인증(Token) 필요
                                 // 이렇게 설정해야 @AuthenticationPrincipal에 데이터가 정상적으로 들어옵니다.
