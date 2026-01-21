@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Min;
 public record ExpenseRequest(
 	    LocalDateTime spentAt,
 	    @Min(value = 0, message = "금액은 0원 이상이어야 합니다.")
-	    Integer amount,
+	    Long amount,
 	    String title,
 	    Category category,
 	    String memo

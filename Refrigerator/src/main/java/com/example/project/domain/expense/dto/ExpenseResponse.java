@@ -8,7 +8,7 @@ import com.example.project.domain.expense.domain.Expense;
 public record ExpenseResponse(
 	    Long expenseId,
 	    LocalDateTime spentAt,
-	    int amount,
+	    Long amount,
 	    String title,
 	    Category category,
 	    String memo
