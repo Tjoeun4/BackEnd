@@ -38,7 +38,7 @@ public class FridgeItem extends BaseTimeEntity {
     private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id", nullable = false)
+    @JoinColumn(name = "item_id")
     private Items item;
 
     @Column(name = "name", nullable = false, length = 100)
