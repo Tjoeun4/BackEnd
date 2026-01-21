@@ -70,6 +70,7 @@ public class ChatRoomController {
     /**
      * 4. 채팅방 상세 및 과거 내역 조회 (페이징 적용)
      * GET /api/chat/room/{roomId}?userId=1&page=0&size=20
+     * GET 형태로 http://localhost:8080/api/chat/room/1  이런식으로 보내면 됨 roomId 는 /rooms 에서 받은 데이터 가져와서 쓰면 됨 
      */
     @GetMapping("/room/{roomId}")
     public ResponseEntity<ChatHistoryResponse> getChatHistory(

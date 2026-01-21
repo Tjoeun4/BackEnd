@@ -1,5 +1,6 @@
 package com.example.project.domain.expense.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime; // LocalDateTime 추가 확인
 import java.util.List;
 import java.util.Map;
@@ -12,12 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.project.domain.expense.domain.Category; // 올바른 Category import
-
 import com.example.project.domain.expense.domain.Expense;
 import com.example.project.domain.expense.domain.ReceiptScan;
+import com.example.project.domain.expense.dto.DailyAmount;
 import com.example.project.domain.expense.dto.ExpenseRequest;
 import com.example.project.domain.expense.dto.ExpenseResponse;
 import com.example.project.domain.expense.dto.ExpenseStatisticsResponse;
+import com.example.project.domain.expense.dto.MonthlyDailySummaryResponse;
 import com.example.project.domain.expense.repository.ExpenseRepository;
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
@@ -140,4 +142,44 @@ public class ExpenseService {
 
         return new ExpenseStatisticsResponse(totalAmount, categorySum, month);
     }
-}
+    
+	 
+	    
+	 // ExpenseService.java 내부에 추가
+	
+	 // 1. 월별 지출 목록 조회 (페이징)
+	 public Page<ExpenseResponse> getMonthlyExpenses(Long userId, int year, int month, Pageable pageable) {
+	     LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
+	     LocalDateTime end = start.plusMonths(1).minusNanos(1);
+	     
+	     return expenseRepository.findByUserUserIdAndSpentAtBetween(userId, start, end, pageable)
+	             .map(ExpenseResponse::from); //
+	 }
+	
+	 // 2. 월별 일일 요약 (달력용)
+	 public MonthlyDailySummaryResponse getDailySummary(Long userId, int year, int month) {
+	     LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
+	     LocalDateTime end = start.plusMonths(1).minusNanos(1);
+	
+	     List<DailyAmount> dailyAmounts = expenseRepository.findDailySummaryByMonth(userId, start, end);
+	     
+	     Long monthTotalAmount = dailyAmounts.stream()
+	             .mapToLong(DailyAmount::totalAmount)
+	             .sum();
+	
+	     return new MonthlyDailySummaryResponse(year, month, monthTotalAmount, dailyAmounts);
+	 }
+	
+	 // 3. 특정 날짜 상세 조회 (최신순)
+	 public List<ExpenseResponse> getDailyExpenses(Long userId, LocalDate date) {
+	     LocalDateTime start = date.atStartOfDay(); // 00:00:00
+	     LocalDateTime end = date.atTime(23, 59, 59, 999999999); // 23:59:59.999...
+	
+	     return expenseRepository.findByUserUserIdAndSpentAtBetweenOrderBySpentAtDesc(userId, start, end)
+	             .stream()
+	             .map(ExpenseResponse::from) //
+	             .toList();
+	 }
+	    
+	    
+	}
