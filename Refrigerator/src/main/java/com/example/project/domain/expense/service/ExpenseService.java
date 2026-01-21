@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.project.domain.expense.domain.Category; // 올바른 Category import
+
 import com.example.project.domain.expense.domain.Expense;
+import com.example.project.domain.expense.domain.ReceiptScan;
 import com.example.project.domain.expense.dto.ExpenseRequest;
 import com.example.project.domain.expense.dto.ExpenseResponse;
 import com.example.project.domain.expense.dto.ExpenseStatisticsResponse;
@@ -33,14 +35,15 @@ public class ExpenseService {
 
     @Transactional
     public Long createExpense(ExpenseRequest dto, Users user) {
-        // 유저 영속성 확보
         Users persistUser = userRepository.getReferenceById(user.getUserId());
 
+        // 일반 수동 입력의 경우
         Expense expense = Expense.builder()
                 .spentAt(dto.spentAt())
                 .amount(dto.amount())
                 .title(dto.title())
-                .category(dto.category()) // 여기서 이제 에러가 발생하지 않습니다
+                // DTO에서 카테고리가 안 오면 Builder 기본 로직에 의해 ETC로 설정됨
+                .category(dto.category()) 
                 .memo(dto.memo())
                 .user(persistUser)
                 .build();
@@ -48,18 +51,42 @@ public class ExpenseService {
         return expenseRepository.save(expense).getExpenseId();
     }
 
+    /**
+     * 영수증 스캔 결과로 지출을 생성할 때 사용하는 별도 메서드 (설계 제안)
+     */
+    @Transactional
+    public Long createExpenseFromReceipt(ReceiptScan scan, String summaryMemo, Users user) {
+        Expense expense = Expense.builder()
+                .spentAt(scan.getPurchasedAt())
+                .amount(scan.getTotalAmount())
+                .title("영수증 지출 (" + scan.getPurchasedAt().toLocalDate() + ")")
+                .category(Category.RECEIPT) // 영수증 스캔본임을 명시
+                .memo(summaryMemo)         // AI가 요약한 텍스트 리스트
+                .receiptScan(scan)          // 1:1 관계 연결
+                .user(user)
+                .build();
+
+        return expenseRepository.save(expense).getExpenseId();
+    }
+    
     @Transactional
     public void updateExpense(Long id, ExpenseRequest dto, Long currentUserId) {
+        // 1. 해당 지출이 존재하고 본인 소유인지 검증 (기존 로직 유지)
         Expense expense = findAndVerifyOwner(id, currentUserId);
         
-        // 올바른 Category 타입이 전달됩니다
+        // 2. 엔티티의 update 메서드 호출
+        // 카테고리가 null로 올 경우 기본값인 ETC를 유지하도록 처리 가능합니다.
+        Category targetCategory = (dto.category() != null) ? dto.category() : Category.ETC;
+
         expense.update(
                 dto.spentAt(),
                 dto.amount(),
                 dto.title(),
-                dto.category(),
+                targetCategory,
                 dto.memo()
         );
+        
+        // 영속성 컨텍스트 덕분에 별도의 save 호출 없이 변경 감지(Dirty Checking)로 반영됩니다.
     }
 
     @Transactional
@@ -104,11 +131,11 @@ public class ExpenseService {
                 .mapToLong(Expense::getAmount)
                 .sum();
 
-        // 4. 카테고리별 합계 계산 (자바 스트림 활용)
-        Map<Category, Integer> categorySum = monthlyExpenses.stream()
+     // Map의 Value 타입을 Integer에서 Long으로 변경합니다.
+        Map<Category, Long> categorySum = monthlyExpenses.stream()
                 .collect(Collectors.groupingBy(
                         Expense::getCategory,
-                        Collectors.summingInt(Expense::getAmount)
+                        Collectors.summingLong(Expense::getAmount)
                 ));
 
         return new ExpenseStatisticsResponse(totalAmount, categorySum, month);

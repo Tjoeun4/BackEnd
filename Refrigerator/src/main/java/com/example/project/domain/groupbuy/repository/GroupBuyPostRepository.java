@@ -30,9 +30,9 @@ public interface GroupBuyPostRepository extends JpaRepository<GroupBuyPost, Long
 	Optional<GroupBuyPost> findByPostId(Long postId);
 
 	@Query("SELECT p FROM GroupBuyPost p WHERE " +
-	           "(p.title LIKE %:keyword% OR p.content LIKE %:keyword%) " +
-	           "AND (:neighborhoodId IS NULL OR p.neighborhood.neighborhoodId = :neighborhoodId) " +
-	           "ORDER BY p.createdAt DESC")
+		       "(p.title LIKE %:keyword%) " + 
+		       "AND (:neighborhoodId IS NULL OR p.neighborhood.neighborhoodId = :neighborhoodId) " +
+		       "ORDER BY p.createdAt DESC")
 	    List<GroupBuyPost> searchByKeywordAndNeighborhood(
 	        @Param("keyword") String keyword, 
 	        @Param("neighborhoodId") Long neighborhoodId
