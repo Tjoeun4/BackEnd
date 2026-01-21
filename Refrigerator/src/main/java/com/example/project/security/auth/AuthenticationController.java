@@ -69,4 +69,21 @@ public class AuthenticationController {
     return ResponseEntity.ok("인증 성공! 이 메시지는 보안 토큰이 있어야만 보입니다.");
   }
   
+//[추가] 관리자용 빠른 유저 생성
+ @PostMapping("/admin/create")
+ public ResponseEntity<AuthenticationResponse> adminCreateUser(
+     @RequestBody AuthenticationRequest request
+ ) {
+   try {
+     // 서비스에 구현된 quickRegister 호출
+     return ResponseEntity.ok(service.quickRegister(request));
+   } catch (Exception e) {
+     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+         AuthenticationResponse.builder()
+             .error("관리자 권한 유저 생성 실패: " + e.getMessage())
+             .build()
+     );
+   }
+ }
+
 }

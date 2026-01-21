@@ -72,6 +72,8 @@ public class OcrClient {
         try {
             URL url = new URL(invokeUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setConnectTimeout(5000); // 연결 시도 시간 5초
+            con.setReadTimeout(30000);    // 데이터 읽기 시간 30초 (OCR은 처리가 느릴 수 있음)
             con.setUseCaches(false);
             con.setDoInput(true);
             con.setDoOutput(true);

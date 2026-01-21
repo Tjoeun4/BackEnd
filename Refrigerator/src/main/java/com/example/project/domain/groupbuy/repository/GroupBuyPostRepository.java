@@ -1,12 +1,16 @@
 package com.example.project.domain.groupbuy.repository;
 
-import com.example.project.domain.groupbuy.domain.GroupBuyPost;
-import com.example.project.member.domain.Users;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.example.project.domain.groupbuy.domain.GroupBuyPost;
+
+import oracle.jdbc.proxy.annotation.Post;
 
 @Repository
 public interface GroupBuyPostRepository extends JpaRepository<GroupBuyPost, Long> {
@@ -24,4 +28,13 @@ public interface GroupBuyPostRepository extends JpaRepository<GroupBuyPost, Long
 	
 	
 	Optional<GroupBuyPost> findByPostId(Long postId);
+
+	@Query("SELECT p FROM GroupBuyPost p WHERE " +
+	           "(p.title LIKE %:keyword% OR p.content LIKE %:keyword%) " +
+	           "AND (:neighborhoodId IS NULL OR p.neighborhood.neighborhoodId = :neighborhoodId) " +
+	           "ORDER BY p.createdAt DESC")
+	    List<GroupBuyPost> searchByKeywordAndNeighborhood(
+	        @Param("keyword") String keyword, 
+	        @Param("neighborhoodId") Long neighborhoodId
+	    );
 }
