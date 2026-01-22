@@ -1,6 +1,7 @@
 package com.example.project.domain.chat.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,12 +44,29 @@ public class ChatService {
     
 
     // 내 채팅방 목록 조회
+//    public List<ChatRoomResponse> getMyRooms(Long userId) {
+//        return chatRoomMemberRepository.findAllByUserUserId(userId).stream()
+//                .map(ChatRoomResponse::from) // ChatRoomResponse.from(ChatRoomMember) 호출
+//                .collect(Collectors.toList());
+//    }
+
     public List<ChatRoomResponse> getMyRooms(Long userId) {
         return chatRoomMemberRepository.findAllByUserUserId(userId).stream()
-                .map(ChatRoomResponse::from) // ChatRoomResponse.from(ChatRoomMember) 호출
+                .map(member -> {
+                    // 1. 해당 방의 최신 메시지 조회
+                    ChatMessage lastMessage = chatMessageRepository
+                        .findFirstByRoomRoomIdOrderByCreatedAtDesc(member.getRoom().getRoomId())
+                        .orElse(null);
+
+                    // 2. static 메서드를 통해 DTO 변환
+                    return ChatRoomResponse.of(member, lastMessage);
+                })
+                // 3. 최신 메시지 시간 순으로 정렬 (최신순)
+                .sorted(Comparator.comparing(ChatRoomResponse::getLastMessageTime, Comparator.nullsLast(Comparator.reverseOrder())))
                 .collect(Collectors.toList());
     }
-
+    
+    
     // 방 상세 조회 및 읽음 처리
     @Transactional
     public ChatRoomDetailResponse getRoomDetail(Long roomId, Long userId) {
