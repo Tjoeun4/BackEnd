@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,6 +28,7 @@ import com.example.project.member.repository.UsersRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -146,29 +148,41 @@ public class ExpenseService {
 	 
 	    
 	 // ExpenseService.java 내부에 추가
-	
-	 // 1. 월별 지출 목록 조회 (페이징)
-	 public Page<ExpenseResponse> getMonthlyExpenses(Long userId, int year, int month, Pageable pageable) {
-	     LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
-	     LocalDateTime end = start.plusMonths(1).minusNanos(1);
-	     
-	     return expenseRepository.findByUserUserIdAndSpentAtBetween(userId, start, end, pageable)
-	             .map(ExpenseResponse::from); //
-	 }
-	
-	 // 2. 월별 일일 요약 (달력용)
-	 public MonthlyDailySummaryResponse getDailySummary(Long userId, int year, int month) {
-	     LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
-	     LocalDateTime end = start.plusMonths(1).minusNanos(1);
-	
-	     List<DailyAmount> dailyAmounts = expenseRepository.findDailySummaryByMonth(userId, start, end);
-	     
-	     Long monthTotalAmount = dailyAmounts.stream()
-	             .mapToLong(DailyAmount::totalAmount)
-	             .sum();
-	
-	     return new MonthlyDailySummaryResponse(year, month, monthTotalAmount, dailyAmounts);
-	 }
+
+    // 1. 월별 지출 목록 조회 (페이징)
+    public Page<ExpenseResponse> getMonthlyExpenses(Long userId, int year, int month, Pageable pageable) {
+        try {
+            // month 값 유효성 체크 (1~12 사이여야 함)
+            if (month < 1 || month > 12) month = 1;
+
+            LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
+            LocalDateTime end = start.plusMonths(1).minusNanos(1);
+
+            return expenseRepository.findByUserUserIdAndSpentAtBetween(userId, start, end, pageable)
+                    .map(ExpenseResponse::from);
+        } catch (Exception e) {
+            // 에러 로그를 남기면 디버깅이 훨씬 쉽습니다.
+            log.error("Error fetching monthly expenses for user {}: {}", userId, e.getMessage());
+            throw e;
+        }
+    }
+
+    // 2. 월별 일일 요약 (달력용)
+    public MonthlyDailySummaryResponse getDailySummary(Long userId, int year, int month) {
+        if (month < 1 || month > 12) month = 1;
+
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime end = start.plusMonths(1).minusNanos(1);
+
+        List<DailyAmount> dailyAmounts = expenseRepository.findDailySummaryByMonth(userId, start, end);
+
+        // dailyAmounts가 null인 경우를 대비한 안전한 처리
+        Long monthTotalAmount = (dailyAmounts == null) ? 0L : dailyAmounts.stream()
+                .mapToLong(DailyAmount::totalAmount)
+                .sum();
+
+        return new MonthlyDailySummaryResponse(year, month, monthTotalAmount, dailyAmounts != null ? dailyAmounts : List.of());
+    }
 	
 	 // 3. 특정 날짜 상세 조회 (최신순)
 	 public List<ExpenseResponse> getDailyExpenses(Long userId, LocalDate date) {
