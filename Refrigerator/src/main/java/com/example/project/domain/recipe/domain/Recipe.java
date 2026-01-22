@@ -1,6 +1,18 @@
 package com.example.project.domain.recipe.domain;
 
-import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,5 +36,11 @@ public class Recipe {
     @Lob
     @Column(nullable = false)
     private String instructions;
+
+ // 추가: 레시피 성분 목록을 가져오기 위한 양방향 설정
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
+    private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
+    
+
 
 }
