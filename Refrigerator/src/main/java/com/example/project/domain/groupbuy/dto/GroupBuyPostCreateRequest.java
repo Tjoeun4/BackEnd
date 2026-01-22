@@ -15,7 +15,6 @@ public class GroupBuyPostCreateRequest {
     private int priceTotal;
     private String meetPlaceText;
     private Long categoryId;
-    private Long neighborhoodId;
     private LocalDate startdate;
     private LocalDate enddate;
     
