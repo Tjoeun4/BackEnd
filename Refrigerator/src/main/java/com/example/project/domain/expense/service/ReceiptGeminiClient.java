@@ -42,6 +42,9 @@ public class ReceiptGeminiClient {
                   5. price: 해당 항목 총액 (숫자)
                   6. category: 다음 중 하나 (MEAL, INGREDIENT, READY_MEAL, DRINK, ETC)
                   7. isFridgeTarget: 식재료로서 냉장고 보관 대상이면 true, 아니면 false
+            	  8. subCategory: 식재료의 상세 분류 (예: 육류, 야채, 수산물, 조미료, 가공식품 등 문맥에 따라 분류)
+            	  9. sellByDate: 영수증에 표시된 유통기한 (yyyy-MM-dd). 정보가 없으면 null.
+                  10. useByDate: 영수증에 표시된 소비기한 (yyyy-MM-dd). 정보가 없으면 null.
                 마크다운 없이 순수 JSON만 반환하세요.
                 """;
 
