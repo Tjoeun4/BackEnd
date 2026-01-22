@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import com.example.project.domain.fridge.domain.Items;
 import com.example.project.domain.recipe.domain.Recipe;
 import com.example.project.domain.recipe.domain.UserDetail;
+import com.example.project.global.config.OcrClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,6 +26,7 @@ public class RecipeAiClient {
 
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate = new RestTemplate();
+
 
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
     

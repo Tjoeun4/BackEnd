@@ -1,18 +1,21 @@
 package com.example.project.domain.expense.service;
 
-import com.example.project.domain.expense.dto.ReceiptAnalysisResponse;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import com.example.project.domain.expense.dto.ReceiptAnalysisResponse;
+import com.example.project.global.config.OcrClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class ReceiptGeminiClient {
     @Value("${google.gemini.api.key}")
     private String apiKey;
 
+    private final OcrClient ocrClient;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -28,7 +32,10 @@ public class ReceiptGeminiClient {
 
     public ReceiptAnalysisResponse analyzeReceiptImage(MultipartFile file) {
         try {
-            String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
+        	String text1 = ocrClient.getTextOnly(file);
+        	
+        	
+//            String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
 
          // ReceiptGeminiClient.java 내부 프롬프트 부분 수정
             String prompt = """
@@ -48,20 +55,20 @@ public class ReceiptGeminiClient {
                 마크다운 없이 순수 JSON만 반환하세요.
                 """;
 
-            Map<String, Object> requestBody = Map.of(
-                "contents", List.of(
-                    Map.of("parts", List.of(
-                        Map.of("text", prompt),
-                        Map.of("inline_data", Map.of("mime_type", "image/jpeg", "data", base64Image))
-                    ))
-                )
-            );
+//            Map<String, Object> requestBody = Map.of(
+//                "contents", List.of(
+//                    Map.of("parts", List.of(
+//                        Map.of("text", prompt),
+//                        Map.of("inline_data", Map.of("mime_type", "image/jpeg", "data", base64Image))
+//                    ))
+//                )
+//            );
 
             String url = GEMINI_API_URL + "?key=" + apiKey;
-            String responseStr = restTemplate.postForObject(url, requestBody, String.class);
+            String responseStr = restTemplate.postForObject(url, text1, String.class);
 
             return parseGeminiResponse(responseStr);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("파일 처리 실패", e);
         }
     }
