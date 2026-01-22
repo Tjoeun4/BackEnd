@@ -100,4 +100,13 @@ public class GroupBuyPostController {
         return ResponseEntity.ok(message);
     }
     
+ // 7. 내가 찜한 게시글 목록 조회
+    @GetMapping("/favorites")
+    public ResponseEntity<List<GroupBuyPostResponse>> getMyFavorites(
+            @AuthenticationPrincipal Users userDetails
+    ) {
+        List<GroupBuyPostResponse> favorites = groupBuyPostService.getMyFavoritePosts(userDetails.getUserId());
+        return ResponseEntity.ok(favorites);
+    }
+    
 }
