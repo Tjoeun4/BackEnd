@@ -48,8 +48,10 @@ public class GroupBuyPostController {
 
     // 3. 상세 조회
     @GetMapping("/{postId}")
-    public ResponseEntity<GroupBuyPostResponse> getPost(@PathVariable("postId") Long postId) {
-        return ResponseEntity.ok(groupBuyPostService.getPostDetail(postId));
+    public ResponseEntity<GroupBuyPostResponse> getPost(
+    		@AuthenticationPrincipal Users userDetails,
+    		@PathVariable("postId") Long postId) {
+        return ResponseEntity.ok(groupBuyPostService.getPostDetail(postId, userDetails.getUserId()));
     }
 
     // 4. 찜하기 토글

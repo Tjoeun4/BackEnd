@@ -1,7 +1,10 @@
 package com.example.project.domain.groupbuy.service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -82,10 +85,13 @@ public class GroupBuyPostService {
     /**
      * 게시글 상세 조회
      */
-    public GroupBuyPostResponse getPostDetail(Long postId) {
+    public GroupBuyPostResponse getPostDetail(Long postId, Long userId) {
         GroupBuyPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
-        return convertToResponse(post);
+        boolean favorite = checkIsFavoriteById(postId, userId);
+        GroupBuyPostResponse id = convertToResponse(post);
+        id.setFavorite(favorite);
+        return id;
     }
 
     /**
@@ -102,6 +108,8 @@ public class GroupBuyPostService {
                 .categoryName(post.getCategory().getName()) // FoodCategory에 getName()이 있다고 가정
                 .authorNickname(post.getUser().getNickname()) // Users에 getNickname()이 있다고 가정
                 .createdAt(post.getCreatedAt())
+                .currentParticipants(post.getCurrentParticipants())
+                .maxParticipants(post.getMaxParticipants())
                 .build();
     }
     
@@ -204,11 +212,43 @@ public class GroupBuyPostService {
         // 1. 유저 조회
         Users user = usersRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
-
+        
         // 2. 찜 내역 조회 및 DTO 변환
         return favoriteRepository.findAllByUserOrderByPost_CreatedAtDesc(user)
                 .stream()
                 .map(favorite -> convertToResponse(favorite.getPost())) // Favorite 엔티티에서 Post를 꺼내 변환
                 .collect(Collectors.toList());
     }
+    
+    /**
+     * [함수 1] 단건 찜 여부 확인 로직
+     * 상세 페이지 조회 등에 사용됩니다.
+     */
+    private boolean checkIsFavorite(Users user, GroupBuyPost post) {
+        if (user == null) return false;
+        return favoriteRepository.existsByUserAndPost(user, post);
+    }
+
+    /**
+     * ID 기반 찜 여부 확인 (최적화 버전)
+     */
+    private boolean checkIsFavoriteById(Long userId, Long postId) {
+        if (userId == null || postId == null) return false;
+        return favoriteRepository.existsByUser_UserIdAndPost_PostId(userId, postId);
+    }
+    /**
+     * [함수 2] 목록 찜 여부 확인 로직 (ID Set 반환)
+     * 목록 조회 시 루프 안에서 쿼리가 나가는 것을 방지합니다.
+     */
+    private Set<Long> getFavoritePostIds(Users user, List<GroupBuyPost> posts) {
+        if (user == null || posts.isEmpty()) return Collections.emptySet();
+        
+        List<Long> postIds = posts.stream()
+                .map(GroupBuyPost::getPostId)
+                .collect(Collectors.toList());
+        
+        return new HashSet<>(favoriteRepository.findFavoritePostIdsByUserAndPostIds(user, postIds));
+    }
+    
+
 }
