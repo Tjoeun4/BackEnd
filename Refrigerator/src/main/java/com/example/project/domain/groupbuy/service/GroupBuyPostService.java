@@ -102,6 +102,8 @@ public class GroupBuyPostService {
                 .categoryName(post.getCategory().getName()) // FoodCategory에 getName()이 있다고 가정
                 .authorNickname(post.getUser().getNickname()) // Users에 getNickname()이 있다고 가정
                 .createdAt(post.getCreatedAt())
+                .currentParticipants(post.getCurrentParticipants())
+                .maxParticipants(post.getMaxParticipants())
                 .build();
     }
     
