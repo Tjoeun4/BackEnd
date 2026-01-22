@@ -196,4 +196,19 @@ public class GroupBuyPostService {
 
         return "참여 신청이 완료되었습니다.";
     }
+    
+    /**
+     * 내가 찜한 공동구매 게시글 목록 조회
+     */
+    public List<GroupBuyPostResponse> getMyFavoritePosts(Long userId) {
+        // 1. 유저 조회
+        Users user = usersRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+
+        // 2. 찜 내역 조회 및 DTO 변환
+        return favoriteRepository.findAllByUserOrderByPost_CreatedAtDesc(user)
+                .stream()
+                .map(favorite -> convertToResponse(favorite.getPost())) // Favorite 엔티티에서 Post를 꺼내 변환
+                .collect(Collectors.toList());
+    }
 }
