@@ -4,12 +4,13 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(
     name = "item_aliases",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uq_item_aliases_alias", columnNames = "alias")
+        @UniqueConstraint(name = "uq_item_aliases_raw_name", columnNames = {"raw_name"})
     }
 )
 @Getter
@@ -20,25 +21,31 @@ public class ItemAlias {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "item_aliases_seq")
     @SequenceGenerator(name = "item_aliases_seq", sequenceName = "ITEM_ALIASES_SEQ", allocationSize = 1)
     @Column(name = "item_alias_id")
-    private Long id;
+    private Long itemAliasId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "item_id", nullable = false)
     private Items item;
 
-    @Column(name = "alias", nullable = false, length = 200)
-    private String alias;
+    @Lob
+    @Column(name = "raw_name", nullable = false)
+    private String rawName;
 
-    @Column(name = "source", nullable = false, length = 20)
-    private String source; // AI / SYSTEM
+    @Column(name = "source", length = 20, nullable = false)
+    private String source;
 
-    private ItemAlias(Items item, String alias, String source) {
+    @Builder
+    private ItemAlias(Items item, String rawName, String source) {
         this.item = item;
-        this.alias = alias;
+        this.rawName = rawName;
         this.source = source;
     }
 
-    public static ItemAlias create(Items item, String alias, String source) {
-        return new ItemAlias(item, alias, source);
+    public static ItemAlias userProvided(Items item, String rawName) {
+        return ItemAlias.builder()
+            .item(item)
+            .rawName(rawName)
+            .source("USER")
+            .build();
     }
 }

@@ -41,9 +41,9 @@ public class FridgeItem extends BaseTimeEntity {
     @JoinColumn(name = "item_id", nullable = false)
     private Items item;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
+    @Column(name = "raw_name", nullable = false, columnDefinition = "CLOB")
+    private String rawName;
+    
     @Column(name = "quantity", precision = 10, scale = 2)
     private BigDecimal quantity;
 
@@ -56,8 +56,8 @@ public class FridgeItem extends BaseTimeEntity {
     @Column(name = "expiry_date")
     private LocalDate expiryDate;
 
-    @Column(name = "consume_by_date")
-    private LocalDate consumeByDate;
+    @Column(name = "consume_date")
+    private LocalDate consumeDate;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status = "ACTIVE";
@@ -65,7 +65,7 @@ public class FridgeItem extends BaseTimeEntity {
     public static FridgeItem create(
             Users user,
             Items item,
-            String name,
+            String rawName,
             BigDecimal quantity,
             String unit,
             LocalDate purchaseDate,
@@ -74,7 +74,7 @@ public class FridgeItem extends BaseTimeEntity {
         FridgeItem fi = new FridgeItem();
         fi.user = user;
         fi.item = item;
-        fi.name = name;
+        fi.rawName = rawName;
         fi.quantity = quantity;
         fi.unit = unit;
         fi.purchaseDate = purchaseDate;

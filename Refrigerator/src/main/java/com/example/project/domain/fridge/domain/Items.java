@@ -15,7 +15,7 @@ public class Items {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "items_seq")
     @SequenceGenerator(name = "items_seq", sequenceName = "ITEMS_SEQ", allocationSize = 1)
     @Column(name = "item_id")
-    private Long id;
+    private Long itemId;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name; 
@@ -35,4 +35,4 @@ public class Items {
     public static Items create(String name, Long categoryId, Long expirationNum) {
         return new Items(name, categoryId, expirationNum);
     }
-}
+} 
