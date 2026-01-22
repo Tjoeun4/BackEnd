@@ -46,6 +46,8 @@ public class SecurityConfiguration {
             "/index.html", 
             "/login.html", 
             "/register.html",
+            "/api/recipes/**",
+            "/api/receipt/**",
             "/css/**", 
             "/js/**",
             "/ws-stomp/**",      // 1. 웹소켓 엔드포인트 추가
