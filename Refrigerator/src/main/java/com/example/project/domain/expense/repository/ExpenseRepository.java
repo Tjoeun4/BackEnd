@@ -32,8 +32,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     // 특정 유저의 지출을 날짜별로 그룹화하여 합산 (JPQL 또는 QueryDSL 권장)
     @Query("SELECT new com.example.project.domain.expense.dto.DailyAmount(CAST(e.spentAt AS LocalDate), SUM(e.amount)) " +
-           "FROM Expense e WHERE e.user.userId = :userId AND e.spentAt BETWEEN :start AND :end " +
-           "GROUP BY CAST(e.spentAt AS LocalDate) ORDER BY e.spentAt ASC")
+            "FROM Expense e WHERE e.user.userId = :userId AND e.spentAt BETWEEN :start AND :end " +
+            "GROUP BY CAST(e.spentAt AS LocalDate) " +
+            "ORDER BY CAST(e.spentAt AS LocalDate) ASC") // 👈 GROUP BY와 정렬 기준을 동일하게 맞춤
     List<DailyAmount> findDailySummaryByMonth(Long userId, LocalDateTime start, LocalDateTime end);
     
  // 3. 특정 날짜 상세 조회 (리스트)

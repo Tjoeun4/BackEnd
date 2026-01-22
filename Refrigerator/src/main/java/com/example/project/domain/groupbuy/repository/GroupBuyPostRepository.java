@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import com.example.project.domain.groupbuy.domain.GroupBuyPost;
 
-import oracle.jdbc.proxy.annotation.Post;
 
 @Repository
 public interface GroupBuyPostRepository extends JpaRepository<GroupBuyPost, Long> {
