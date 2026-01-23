@@ -19,4 +19,6 @@ public interface NeighborhoodRepository extends JpaRepository<Neighborhood, Long
 
 	Optional<Neighborhood> findByNeighborhoodId(Long neighborhoodId);
 
+	Optional<Neighborhood> findFirstBy();
+
 }
