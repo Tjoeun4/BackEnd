@@ -17,5 +17,10 @@ public class GroupBuyPostCreateRequest {
     private Long categoryId;
     private LocalDate startdate;
     private LocalDate enddate;
+    private Double lat; // 위도 (Latitude)
+    private Double lng; // 경도 (Longitude)
+    
+    
+    
     
 }
