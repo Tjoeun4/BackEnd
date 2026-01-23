@@ -7,8 +7,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.example.project.global.image.ImageUploadResponse;
+import com.example.project.global.image.S3ImageService;
 import com.example.project.member.domain.Users;
+import com.example.project.member.dto.UserResponseDto;
 import com.example.project.member.repository.UsersRepository;
 import com.example.project.security.user.ChangePasswordRequest;
 
@@ -21,7 +25,7 @@ public class UsersService {
     private final PasswordEncoder passwordEncoder;
     private final UsersRepository repository;
 
-
+    private final S3ImageService s3ImageService;
 
     /**
      * 닉네임 중복 여부 확인
@@ -109,4 +113,54 @@ public class UsersService {
 	    
 	    // @Transactional이 붙어있으므로 별도의 save 없이도 변경 감지(Dirty Checking)로 업데이트됩니다.
 	}
+	
+	// [Create & Update] 프로필 이미지 등록/수정 (하나로 해결)
+    @Transactional
+    public void uploadProfileImage(Long userId, MultipartFile file) {
+        Users user = repository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 없습니다."));
+
+        // 1. 기존 이미지가 이미 있으면 S3에서 먼저 삭제 (찌꺼기 제거)
+        if (user.getProfileImage() != null) {
+            s3ImageService.delete(user.getProfileImage().getS3Key());
+        }
+
+        // 2. 새 이미지 S3 업로드
+        ImageUploadResponse res = s3ImageService.upload(file, "profiles");
+
+        // 3. 유저 엔티티 필드 업데이트 (DB 저장)
+        user.updateProfileImage(res);
+    }
+
+    // [Read] 프로필 이미지 경로 조회
+    @Transactional(readOnly = true)
+    public String getProfileImageUrl(Long userId) {
+        Users user = repository.findById(userId).orElseThrow();
+        return (user.getProfileImage() != null) ? user.getProfileImage().getImageUrl() : "기본이미지URL";
+    }
+
+    // [Delete] 프로필 이미지 삭제 (기본 이미지로 돌아가기)
+    @Transactional
+    public void deleteProfileImage(Long userId) {
+        Users user = repository.findById(userId).orElseThrow();
+
+        if (user.getProfileImage() != null) {
+            // 1. S3 실제 파일 삭제
+            s3ImageService.delete(user.getProfileImage().getS3Key());
+            // 2. 엔티티 필드 비우기
+            user.clearProfileImage();
+        }
+    }
+    
+ // 유저 정보 조회 로직
+    @Transactional(readOnly = true)
+    public UserResponseDto getUserInfo(Long userId) {
+        Users user = repository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        // 프론트엔드에 필요한 정보만 골라서 Map에 담습니다.
+        return UserResponseDto.from(user);
+    }
+
+
 }

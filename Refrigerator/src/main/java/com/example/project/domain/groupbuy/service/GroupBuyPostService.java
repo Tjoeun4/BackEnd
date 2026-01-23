@@ -9,17 +9,22 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.project.domain.fridge.domain.FoodCategory;
 import com.example.project.domain.fridge.repository.FoodCategoryRepository;
 import com.example.project.domain.groupbuy.domain.GroupBuyParticipant;
 import com.example.project.domain.groupbuy.domain.GroupBuyPost;
+import com.example.project.domain.groupbuy.domain.GroupBuyPostImage;
 import com.example.project.domain.groupbuy.domain.PostFavorite;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostCreateRequest;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostResponse;
 import com.example.project.domain.groupbuy.repository.GroupBuyParticipantRepository;
+import com.example.project.domain.groupbuy.repository.GroupBuyPostImageRepository;
 import com.example.project.domain.groupbuy.repository.GroupBuyPostRepository;
 import com.example.project.domain.groupbuy.repository.PostFavoriteRepository;
+import com.example.project.global.image.ImageUploadResponse;
+import com.example.project.global.image.S3ImageService;
 import com.example.project.global.neighborhood.Neighborhood;
 import com.example.project.global.neighborhood.NeighborhoodRepository;
 import com.example.project.member.domain.Users;
@@ -40,7 +45,9 @@ public class GroupBuyPostService {
     private final PostFavoriteRepository favoriteRepository;
     private final GroupBuyParticipantRepository participantRepository;
     
-    
+    // 이미지 처리를 위한 S3 서비스와 repo
+    private final S3ImageService s3ImageService;
+    private final GroupBuyPostImageRepository imageRepository;
     
     /**
      * 공동구매 게시글 생성
@@ -96,26 +103,6 @@ public class GroupBuyPostService {
         return id;
     }
 
-    /**
-     * Entity -> DTO 변환 (공통 메서드)
-     */
-    private GroupBuyPostResponse convertToResponse(GroupBuyPost post) {
-        return GroupBuyPostResponse.builder()
-                .postId(post.getPostId())
-                .title(post.getTitle())
-                .description(post.getDescription())
-                .priceTotal(post.getPriceTotal())
-                .meetPlaceText(post.getMeetPlaceText())
-                .status(post.getStatus())
-                .categoryName(post.getCategory().getName()) // FoodCategory에 getName()이 있다고 가정
-                .authorNickname(post.getUser().getNickname()) // Users에 getNickname()이 있다고 가정
-                .createdAt(post.getCreatedAt())
-                .currentParticipants(post.getCurrentParticipants())
-                .maxParticipants(post.getMaxParticipants())
-                .lat(post.getLat())
-                .lng(post.getLng())
-                .build();
-    }
     
     /**
      * 찜하기 토글 (찜하기 추가 또는 취소)
@@ -255,4 +242,135 @@ public class GroupBuyPostService {
     }
     
 
+
+    
+    @Transactional
+    public void savePostImages(List<MultipartFile> files, Long postId, Users user) {
+        if (files == null || files.isEmpty()) return;
+
+        GroupBuyPost post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+
+        for (int i = 0; i < files.size(); i++) {
+            // 1. S3 업로드 실행 (공용 서비스 호출)
+            ImageUploadResponse res = s3ImageService.upload(files.get(i), "groupbuy");
+
+            // 2. GroupBuyPostImage 엔티티 생성 (내부에 ImageInfo 포함됨)
+            GroupBuyPostImage postImage = GroupBuyPostImage.builder()
+                    .res(res)
+                    .post(post)
+                    .user(user)
+                    .sortOrder(i + 1)
+                    .build();
+
+            // 3. DB 저장
+            imageRepository.save(postImage);
+        }
+    }
+    
+ // [DELETE] 특정 게시글의 모든 이미지 삭제 (게시글 삭제 시 호출)
+    @Transactional
+    public void deletePostImagesOnly(Long postId) {
+    	GroupBuyPost post = postRepository.findByPostId(postId)
+    			.orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+
+    	List<GroupBuyPostImage> images = imageRepository.findByPost(post);
+        
+
+        // 1. S3에서 실제 파일들 삭제
+        for (GroupBuyPostImage img : images) {
+            s3ImageService.delete(img.getImageInfo().getS3Key());
+        }
+        
+        // 2. DB 데이터 삭제
+        imageRepository.deleteAllInBatch(images);
+    }
+
+ // [게시글 삭제 함수 추가]
+    @Transactional
+    public void deleteWholePost(Long postId, Long userId) {
+        GroupBuyPost post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+
+        // 권한 체크 (본인 글인지 확인)
+        if (!post.getUser().getUserId().equals(userId)) {
+            throw new RuntimeException("본인 게시글만 삭제할 수 있습니다.");
+        }
+
+        // 1. 이미지 먼저 싹 지우기 (위에서 만든 함수 호출)
+        deletePostImagesOnly(postId);
+
+        // 2. 게시글 삭제 (이때 참여자 정보 등도 Cascade에 의해 같이 지워짐)
+        postRepository.delete(post);
+    }
+    
+    // [UPDATE] 이미지 수정 (기존 거 지우고 새 거 올리기 방식)
+    @Transactional
+    public void updatePostImages(List<MultipartFile> newFiles, Long postId, Users user) {
+        // 1. 기존 이미지 싹 정리 (S3 + DB)
+    	deletePostImagesOnly(postId);
+        
+        // 2. 새로운 이미지 업로드 및 저장 (기존에 만든 savePostImages 재사용)
+    	savePostImages(newFiles, postId, user);
+    }
+    
+    /**
+     * [CREATE] 공동구매 게시글 및 이미지 통합 생성
+     */
+    @Transactional
+    public Long createPostWithImages(Long userId, GroupBuyPostCreateRequest request, List<MultipartFile> files) {
+        // 1. 기존 게시글 생성 로직 호출
+        Long postId = createPost(userId, request);
+        
+        // 2. 이미지가 있다면 저장
+        if (files != null && !files.isEmpty()) {
+            Users user = usersRepository.findById(userId).orElseThrow();
+            savePostImages(files, postId, user);
+        }
+        return postId;
+    }
+
+    /**
+     * [UPDATE] 게시글 내용 수정 및 이미지 교체
+     */
+    @Transactional
+    public void updatePostWithImages(Long postId, GroupBuyPostCreateRequest request, List<MultipartFile> files, Users user) {
+        GroupBuyPost post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+
+        // 1. 글 내용 수정 (더티 체킹 활용을 위해 필드 업데이트 로직 필요)
+        // post.update(request); // Entity에 해당 메서드 추가 필요
+        
+        // 2. 이미지 교체 (기존 이미지 삭제 후 새 이미지 저장)
+        if (files != null && !files.isEmpty()) {
+            updatePostImages(files, postId, user);
+        }
+    }
+
+    /**
+     * [READ] Entity -> DTO 변환 시 이미지 URL 리스트 포함
+     */
+    private GroupBuyPostResponse convertToResponse(GroupBuyPost post) {
+        // 이미지 엔티티에서 URL만 뽑아내기
+        List<String> imageUrls = post.getImages().stream()
+                .map(img -> img.getImageInfo().getImageUrl())
+                .collect(Collectors.toList());
+
+        return GroupBuyPostResponse.builder()
+                .postId(post.getPostId())
+                .title(post.getTitle())
+                .description(post.getDescription())
+                .priceTotal(post.getPriceTotal())
+                .meetPlaceText(post.getMeetPlaceText())
+                .status(post.getStatus())
+                .categoryName(post.getCategory().getName())
+                .authorNickname(post.getUser().getNickname())
+                .createdAt(post.getCreatedAt())
+                .currentParticipants(post.getCurrentParticipants())
+                .maxParticipants(post.getMaxParticipants())
+                .lat(post.getLat())
+                .lng(post.getLng())
+                .imageUrls(imageUrls) // 이 부분을 추가해야 상세/목록에서 사진이 보입니다.
+                .build();
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.project.domain.groupbuy.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +26,7 @@ public class GroupBuyPostResponse {
     private int maxParticipants; // 기본 모집 정원 15명
     private Double lat; // 위도 (Latitude)
     private Double lng; // 경도 (Longitude)
-    
+    private List<String> imageUrls; // 이미지 URL들만 모아서 반환
     
  // 추가: 현재 사용자의 찜 여부
     private boolean isFavorite;

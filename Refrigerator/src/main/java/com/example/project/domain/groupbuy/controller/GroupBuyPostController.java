@@ -2,15 +2,18 @@ package com.example.project.domain.groupbuy.controller;
 
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.project.domain.groupbuy.dto.GroupBuyPostCreateRequest;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostResponse;
@@ -19,6 +22,7 @@ import com.example.project.member.domain.Users;
 
 import lombok.RequiredArgsConstructor;
 
+
 @RestController
 @RequestMapping("/api/group-buy")
 @RequiredArgsConstructor
@@ -26,17 +30,33 @@ public class GroupBuyPostController {
 
     private final GroupBuyPostService groupBuyPostService;
 
-    // 1. 게시글 등록
-    @PostMapping
+ // 1. 게시글 등록 (글 + 이미지 통합)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Long> createPost(
-    		@RequestBody GroupBuyPostCreateRequest request,
-            @AuthenticationPrincipal Users userDetails // 1. 보안 객체로 변경
-    		) {
-    	Long currentUserId = userDetails.getUserId();
-        Long postId = groupBuyPostService.createPost(currentUserId, request);
+            @RequestPart("postDto") GroupBuyPostCreateRequest request,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @AuthenticationPrincipal Users userDetails
+    ) {
+        // 서비스에서 글 생성과 이미지 저장을 한 번에 처리하도록 호출
+        Long postId = groupBuyPostService.createPostWithImages(userDetails.getUserId(), request, files);
         return ResponseEntity.ok(postId);
     }
 
+    // 2. 게시글 수정 (글 수정 + 이미지 교체)
+    @PostMapping(value = "/{postId}/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> updatePost(
+            @PathVariable("postId") Long postId,
+            @RequestPart("postDto") GroupBuyPostCreateRequest request,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @AuthenticationPrincipal Users userDetails) {
+        
+        groupBuyPostService.updatePostWithImages(postId, request, files, userDetails);
+        return ResponseEntity.ok("게시글 수정 완료");
+    }
+
+    
+
+    
     // 2. 동네별 목록 조회
     @GetMapping
     public ResponseEntity<List<GroupBuyPostResponse>> getPosts(
@@ -109,6 +129,16 @@ public class GroupBuyPostController {
     ) {
         List<GroupBuyPostResponse> favorites = groupBuyPostService.getMyFavoritePosts(userDetails.getUserId());
         return ResponseEntity.ok(favorites);
+    }
+    
+ // 8. 게시글 삭제 (이미지 + 글 전체)
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<String> deletePost(
+            @PathVariable("postId") Long postId,
+            @AuthenticationPrincipal Users userDetails) {
+        
+        groupBuyPostService.deleteWholePost(postId, userDetails.getUserId());
+        return ResponseEntity.ok("게시글 삭제가 완료되었습니다.");
     }
     
 }
