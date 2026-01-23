@@ -1,9 +1,11 @@
 package com.example.project.domain.groupbuy.domain;
 
-import com.example.project.domain.groupbuy.domain.GroupBuyPost;
+import com.example.project.global.image.ImageInfo;
+import com.example.project.global.image.ImageUploadResponse;
 import com.example.project.member.domain.Users;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -28,8 +31,10 @@ public class GroupBuyPostImage {
     @Column(name = "image_id")
     private Long imageId;
 
-    @Column(name = "image_url", nullable = false, length = 500)
-    private String imageUrl;
+    
+    @Embedded // 여기서 ImageInfo를 사용!
+    private ImageInfo imageInfo;
+
 
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
@@ -43,4 +48,12 @@ public class GroupBuyPostImage {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private GroupBuyPost post;
+    
+    @Builder
+    public GroupBuyPostImage(ImageUploadResponse res, Users user, GroupBuyPost post, int sortOrder) {
+        this.imageInfo = new ImageInfo(res);
+        this.user = user;
+        this.post = post;
+        this.sortOrder = sortOrder;
+    }
 }

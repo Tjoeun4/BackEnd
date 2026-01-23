@@ -57,6 +57,8 @@ public class GroupBuyPost extends BaseTimeEntity {
     private LocalDate startdate;
     private LocalDate enddate;
     
+    private Double lat; // 위도 (Latitude)
+    private Double lng; // 경도 (Longitude)
     
     @Column(nullable = false)
     private String status = "OPEN";

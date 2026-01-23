@@ -3,17 +3,19 @@ package com.example.project.member.domain;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.example.project.global.image.ImageInfo;
+import com.example.project.global.image.ImageUploadResponse;
 import com.example.project.global.neighborhood.Neighborhood;
 import com.example.project.security.token.Token;
 import com.example.project.security.user.Role;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -104,6 +106,19 @@ public class Users implements UserDetails {
     // 토큰 업데이트 메서드
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
+    }
+    
+    @Embedded
+    private ImageInfo profileImage;
+
+ // 이미지 업데이트 편의 메서드
+    public void updateProfileImage(ImageUploadResponse res) {
+        this.profileImage = new ImageInfo(res);
+    }
+
+    // 이미지 삭제(초기화) 메서드
+    public void clearProfileImage() {
+        this.profileImage = null;
     }
     
     @Override

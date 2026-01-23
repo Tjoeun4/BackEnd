@@ -1,11 +1,15 @@
 package com.example.project.domain.groupbuy.dto;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import java.time.LocalDateTime;
+import lombok.Setter;
 
 @Getter
+@Setter
 @Builder
 @AllArgsConstructor
 public class GroupBuyPostResponse {
@@ -18,4 +22,12 @@ public class GroupBuyPostResponse {
     private String categoryName;
     private String authorNickname;
     private LocalDateTime createdAt;
+    private int currentParticipants; // 현재 참여 인원 (작성자 포함 기본 1명)
+    private int maxParticipants; // 기본 모집 정원 15명
+    private Double lat; // 위도 (Latitude)
+    private Double lng; // 경도 (Longitude)
+    private List<String> imageUrls; // 이미지 URL들만 모아서 반환
+    
+ // 추가: 현재 사용자의 찜 여부
+    private boolean isFavorite;
 }
