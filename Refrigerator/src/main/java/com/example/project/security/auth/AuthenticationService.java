@@ -196,9 +196,10 @@ public class AuthenticationService {
 	public AuthenticationResponse quickRegister(AuthenticationRequest request) {
 	    // 1. 관리자 생성용 기본 동네 설정 (예: ID가 1인 동네를 기본값으로 설정하거나 DB에서 하나 가져옴)
 	    // 만약 Neighborhood가 필수라면 아래처럼 기본값을 찾아 넣어줘야 합니다.
-	    Neighborhood defaultNeighborhood = neighborhoodRepository.findById(1L)
-	            .orElseThrow(() -> new RuntimeException("기본 동네 정보가 없습니다."));
-
+		Neighborhood defaultNeighborhood = neighborhoodRepository.findFirstBy()
+	            .orElseThrow(() -> new RuntimeException("등록된 동네 정보가 최소 하나는 있어야 합니다."));
+		
+		
 	    // 2. 회원 엔티티 생성 (필수 필드들은 임시값으로 채움)
 	    var user = Users.builder()
 	    		.email(request.getEmail())
