@@ -6,31 +6,30 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(
-    name = "item_aliases",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uq_item_aliases_raw_name", columnNames = {"raw_name"})
-    }
-)
+@Table(name = "ITEM_ALIASES") 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ItemAlias {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "item_aliases_seq")
-    @SequenceGenerator(name = "item_aliases_seq", sequenceName = "ITEM_ALIASES_SEQ", allocationSize = 1)
-    @Column(name = "item_alias_id")
+    @SequenceGenerator(
+        name = "item_aliases_seq",
+        sequenceName = "ITEM_ALIASES_SEQ",
+        allocationSize = 1
+    )
+    @Column(name = "ITEM_ALIAS_ID")
     private Long itemAliasId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "item_id", nullable = false)
+    @JoinColumn(name = "ITEM_ID", nullable = false)
     private Items item;
 
     @Lob
-    @Column(name = "raw_name", nullable = false)
+    @Column(name = "RAW_NAME", nullable = false)
     private String rawName;
 
-    @Column(name = "source", length = 20, nullable = false)
+    @Column(name = "SOURCE", length = 20, nullable = false)
     private String source;
 
     public Long getId() {
@@ -38,10 +37,10 @@ public class ItemAlias {
     }
 
     public static ItemAlias create(Items item, String rawName, String source) {
-        ItemAlias a = new ItemAlias();
-        a.item = item;
-        a.rawName = rawName;
-        a.source = source;
-        return a;
+        ItemAlias alias = new ItemAlias();
+        alias.item = item;
+        alias.rawName = rawName;
+        alias.source = source;
+        return alias;
     }
 }
