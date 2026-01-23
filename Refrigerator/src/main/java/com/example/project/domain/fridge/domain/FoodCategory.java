@@ -15,7 +15,6 @@ public class FoodCategory {
 	@Column(name="category_id")
 	private Long categoryId;
 
-
 	@Column(name="name", nullable=false, length=50, unique=true)
 	private String name;
     
