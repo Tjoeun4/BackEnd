@@ -66,6 +66,8 @@ public class GroupBuyPostService {
                 .status("OPEN") // 기본값 설정
                 .startdate(request.getStartdate())
                 .enddate(request.getEnddate())
+                .lat(request.getLat())
+                .lng(request.getLng())
                 .build();
 
         // 3. 저장 및 ID 반환
@@ -110,6 +112,8 @@ public class GroupBuyPostService {
                 .createdAt(post.getCreatedAt())
                 .currentParticipants(post.getCurrentParticipants())
                 .maxParticipants(post.getMaxParticipants())
+                .lat(post.getLat())
+                .lng(post.getLng())
                 .build();
     }
     
