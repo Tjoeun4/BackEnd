@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.*;
 
 @Entity
 @Table(
@@ -34,18 +33,15 @@ public class ItemAlias {
     @Column(name = "source", length = 20, nullable = false)
     private String source;
 
-    @Builder
-    private ItemAlias(Items item, String rawName, String source) {
-        this.item = item;
-        this.rawName = rawName;
-        this.source = source;
+    public Long getId() {
+        return this.itemAliasId;
     }
 
-    public static ItemAlias userProvided(Items item, String rawName) {
-        return ItemAlias.builder()
-            .item(item)
-            .rawName(rawName)
-            .source("USER")
-            .build();
+    public static ItemAlias create(Items item, String rawName, String source) {
+        ItemAlias a = new ItemAlias();
+        a.item = item;
+        a.rawName = rawName;
+        a.source = source;
+        return a;
     }
 }

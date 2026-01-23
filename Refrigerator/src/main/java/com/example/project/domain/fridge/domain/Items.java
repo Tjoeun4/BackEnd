@@ -17,22 +17,26 @@ public class Items {
     @Column(name = "item_id")
     private Long itemId;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name; 
+    @Column(name = "name", length = 100, nullable = false)
+    private String name;
 
-    @Column(name = "category_id", nullable = false)
+    @Column(name = "category_id")
     private Long categoryId;
 
-    @Column(name = "expiration_num", nullable = false)
-    private Long expirationNum; // 평균 유통기한(일)
+    @Column(name = "expiration_num")
+    private Long expirationNum;
 
-    private Items(String name, Long categoryId, Long expirationNum) {
-        this.name = name;
-        this.categoryId = categoryId;
-        this.expirationNum = expirationNum;
+    // ✅ 호환용: 서비스에서 getId()로 통일해서 쓰려고 추가
+    public Long getId() {
+        return this.itemId;
     }
 
+    // ✅ 호환용: 서비스에서 Items.create(...)로 통일해서 쓰려고 추가
     public static Items create(String name, Long categoryId, Long expirationNum) {
-        return new Items(name, categoryId, expirationNum);
+        Items i = new Items();
+        i.name = name;
+        i.categoryId = categoryId;
+        i.expirationNum = expirationNum;
+        return i;
     }
-} 
+}
