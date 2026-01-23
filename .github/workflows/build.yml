@@ -1,8 +1,7 @@
 name: SonarCloud Analysis
-
 on:
   push:
-    branches: [ "main" ] # 본인의 메인 브랜치 이름이 master라면 master로 수정
+    branches: [ "main" ] # 브랜치 이름이 master라면 master로 수정하세요
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -10,12 +9,18 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
+    
+    # [중요] 모든 작업이 Refrigerator 폴더 안에서 시작되도록 설정
+    defaults:
+      run:
+        working-directory: Refrigerator 
+
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 전체 히스토리를 가져와야 분석이 정확합니다.
+          fetch-depth: 0
           
-      - name: Set up JDK 17 # 정민 님이 프로젝트에서 쓰는 자바 버전 (11, 17, 21 등)으로 수정
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -27,22 +32,14 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-          
-      - name: Build and analyze with Gradle
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 이건 깃허브가 알아서 넣어줍니다.
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # 아까 등록한 Secret 이름
-        run: ./gradlew build sonar --info
 
-        # 추가된 부분: gradlew 파일에 실행 권한 부여
+      # 실행 권한 부여 (Refrigerator 폴더 내의 gradlew를 찾음)
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
-        working-directory: Refrigerator # 만약 실제 폴더명이 다르다면 그 폴더명으로 수정하세요!
 
-      # 수정된 부분: 실행 위치 지정
+      # 빌드 및 분석 실행
       - name: Build and analyze with Gradle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonar --info
-        working-directory: Refrigerator # 실행 폴더를 지정해줍니다.
