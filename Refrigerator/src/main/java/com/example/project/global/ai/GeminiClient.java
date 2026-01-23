@@ -3,8 +3,10 @@ package com.example.project.global.ai;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
 @RequiredArgsConstructor
@@ -16,11 +18,11 @@ public class GeminiClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AiItemInfo inferItemInfo(String userInputName) {
-        try {
-            String model = props.model();
-            String path = "/v1beta/models/" + model + ":generateContent";
+        String model = props.model();
+        String path = "/v1beta/models/" + model + ":generateContent";
 
-            String prompt = """
+        // JSON만 출력 강제
+        String prompt = """
             너는 식재료 DB 구축 도우미야.
             사용자가 입력한 식재료 이름을 표준화해서 items 테이블에 넣을 정보를 만든다.
 
@@ -40,14 +42,14 @@ public class GeminiClient {
             사용자 입력: "%s"
             """.formatted(userInputName);
 
-            // 요청 바디 구성
+        try {
+            // 요청 body 구성
             var body = objectMapper.createObjectNode();
             var contents = body.putArray("contents");
             var c0 = contents.addObject();
             var parts = c0.putArray("parts");
             parts.addObject().put("text", prompt);
 
-            // ✅ 키를 query param으로 붙여서 호출
             String raw = geminiWebClient.post()
                 .uri(uriBuilder -> uriBuilder
                     .path(path)
@@ -56,6 +58,12 @@ public class GeminiClient {
                 )
                 .bodyValue(body)
                 .retrieve()
+                // ✅ HTTP 에러면 바디까지 포함해서 예외로 던지기
+                .onStatus(HttpStatusCode::isError, resp ->
+                    resp.bodyToMono(String.class).map(errBody ->
+                        new RuntimeException("Gemini HTTP error: " + resp.statusCode() + " body=" + errBody)
+                    )
+                )
                 .bodyToMono(String.class)
                 .block();
 
@@ -63,29 +71,64 @@ public class GeminiClient {
                 throw new IllegalStateException("Gemini response empty");
             }
 
-            // 응답에서 candidates[0].content.parts[0].text 추출
+            // 1) candidates 텍스트 추출
             JsonNode root = objectMapper.readTree(raw);
             JsonNode textNode = root.at("/candidates/0/content/parts/0/text");
             if (textNode.isMissingNode()) {
-                throw new IllegalStateException("Gemini response missing text: " + raw);
+                // Gemini가 blocked/candidate 없을 때도 있으니 원문 같이 던짐
+                throw new IllegalStateException("Gemini response missing candidates text. raw=" + raw);
             }
 
-            String jsonText = textNode.asText().trim();
+            String text = textNode.asText().trim();
 
-            // 혹시 앞뒤에 잡텍스트가 붙는 케이스 대비(테스트 단계용)
-            JsonNode info = objectMapper.readTree(jsonText);
+            // 2) 안전하게 JSON만 뽑기 (앞뒤 잡텍스트/코드블록 제거)
+            String jsonOnly = extractJsonObject(text);
 
-            return new AiItemInfo(
-                info.path("itemName").asText(null),
-                info.path("expirationDays").isNumber() ? info.path("expirationDays").asInt() : null,
-                info.path("categoryName").asText(null),
-                info.path("confidence").isNumber() ? info.path("confidence").asDouble() : null,
-                info.path("notes").asText(null)
-            );
+            // 3) JSON 파싱
+            JsonNode info = objectMapper.readTree(jsonOnly);
+
+            String itemName = info.path("itemName").asText(null);
+            Integer expirationDays = info.path("expirationDays").isNumber() ? info.path("expirationDays").asInt() : null;
+            String categoryName = info.path("categoryName").asText(null);
+            Double confidence = info.path("confidence").isNumber() ? info.path("confidence").asDouble() : null;
+            String notes = info.path("notes").asText(null);
+
+            return new AiItemInfo(itemName, expirationDays, categoryName, confidence, notes);
+
+        } catch (WebClientResponseException e) {
+            // ✅ 여기가 찍히면 상태코드/바디가 다 나옴
+            throw new RuntimeException("Gemini HTTP exception: status=" + e.getStatusCode()
+                + " body=" + e.getResponseBodyAsString(), e);
 
         } catch (Exception e) {
-            throw new RuntimeException("Gemini infer failed", e);
+            // ✅ 원인 파악용: 메시지를 더 자세히
+            throw new RuntimeException("Gemini infer failed: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Gemini가 JSON 외 텍스트를 섞어 보내도,
+     * 첫 번째 {...} JSON 오브젝트만 뽑아내는 유틸.
+     */
+    private String extractJsonObject(String s) {
+        if (s == null) return null;
+
+        // 코드블록 ``` 제거(있으면)
+        String t = s.replace("```json", "").replace("```", "").trim();
+
+        int start = t.indexOf('{');
+        if (start < 0) throw new IllegalStateException("No JSON object start found. text=" + t);
+
+        int depth = 0;
+        for (int i = start; i < t.length(); i++) {
+            char c = t.charAt(i);
+            if (c == '{') depth++;
+            if (c == '}') depth--;
+            if (depth == 0) {
+                return t.substring(start, i + 1).trim();
+            }
+        }
+        throw new IllegalStateException("No JSON object end found. text=" + t);
     }
 
     public record AiItemInfo(
