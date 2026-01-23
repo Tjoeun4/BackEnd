@@ -1,0 +1,35 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches: [ "main" ] # 본인의 메인 브랜치 이름이 master라면 master로 수정
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 전체 히스토리를 가져와야 분석이 정확합니다.
+          
+      - name: Set up JDK 17 # 정민 님이 프로젝트에서 쓰는 자바 버전 (11, 17, 21 등)으로 수정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+          
+      - name: Build and analyze with Gradle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 이건 깃허브가 알아서 넣어줍니다.
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # 아까 등록한 Secret 이름
+        run: ./gradlew build sonar --info
