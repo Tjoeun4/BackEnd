@@ -33,3 +33,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 이건 깃허브가 알아서 넣어줍니다.
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # 아까 등록한 Secret 이름
         run: ./gradlew build sonar --info
+
+        # 추가된 부분: gradlew 파일에 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+        working-directory: BackEnd # 만약 실제 폴더명이 다르다면 그 폴더명으로 수정하세요!
+
+      # 수정된 부분: 실행 위치 지정
+      - name: Build and analyze with Gradle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew build sonar --info
+        working-directory: BackEnd # 실행 폴더를 지정해줍니다.
