@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +36,7 @@ public class IngredientAddService {
     public IngredientResolveResponse resolve(IngredientResolveRequest req) {
         String input = normalize(req.getInputName());
 
+        // 2-1) alias 완전일치
         var aliasOpt = itemAliasRepository.findByRawName(input);
         if (aliasOpt.isPresent()) {
             ItemAlias alias = aliasOpt.get();
@@ -50,7 +51,20 @@ public class IngredientAddService {
             return IngredientResolveResponse.confirmAlias(c);
         }
 
-        List<Items> candidates = itemsRepository.findByNameContaining(input);
+        // 2-2) items 후보 조회 (양방향 매칭)
+        // A) name LIKE %input% (기존)
+        List<Items> a = itemsRepository.findByNameContaining(input);
+
+        // B) input LIKE %name% (추가) → "수미감자" 입력 시 "감자" 후보가 뜨게
+        List<Items> b = itemsRepository.findWhereInputContainsItemName(input);
+
+        // 합치기(중복 제거)
+        Map<Long, Items> merged = new LinkedHashMap<>();
+        for (Items i : a) merged.put(i.getId(), i);
+        for (Items i : b) merged.put(i.getId(), i);
+
+        List<Items> candidates = new ArrayList<>(merged.values());
+
         if (!candidates.isEmpty()) {
             List<IngredientResolveResponse.ItemCandidate> list = candidates.stream()
                 .map(i -> new IngredientResolveResponse.ItemCandidate(
@@ -63,6 +77,7 @@ public class IngredientAddService {
             return IngredientResolveResponse.pickItem(list);
         }
 
+        // 2-3) 후보 없으면 AI
         return IngredientResolveResponse.aiPending("매칭되는 식재료가 없어 AI로 표준 식재료 생성이 필요합니다.");
     }
 
@@ -83,7 +98,7 @@ public class IngredientAddService {
             item = alias.getItem();
             rawNameForFridge = alias.getRawName();
         }
-        // 2-2 item 선택 확정
+        // 2-2 item 선택 확정 → alias 없으면 USER로 생성
         else if (req.getItemId() != null) {
             item = itemsRepository.findById(req.getItemId())
                 .orElseThrow(() -> new EntityNotFoundException("Item not found: " + req.getItemId()));
@@ -92,9 +107,10 @@ public class IngredientAddService {
                 .orElseGet(() -> itemAliasRepository.save(
                     ItemAlias.create(item, inputName, "USER")
                 ));
+
             rawNameForFridge = alias.getRawName();
         }
-        // 2-3 AI 생성
+        // 2-3 AI 생성 → items + alias(AI) 생성
         else {
             var ai = geminiClient.inferItemInfo(inputName);
 
