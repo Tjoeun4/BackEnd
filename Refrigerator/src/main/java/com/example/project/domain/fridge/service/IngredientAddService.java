@@ -11,7 +11,6 @@ import com.example.project.domain.fridge.dto.IngredientResolveResponse;
 import com.example.project.domain.fridge.repository.FridgeItemRepository;
 import com.example.project.domain.fridge.repository.ItemAliasRepository;
 import com.example.project.domain.fridge.repository.ItemsRepository;
-import com.example.project.global.ai.GeminiClient;
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,7 +29,7 @@ public class IngredientAddService {
     private final ItemsRepository itemsRepository;
     private final UsersRepository usersRepository;
     private final FridgeItemRepository fridgeItemRepository;
-    private final GeminiClient geminiClient;
+    private final IngredientInferClient ingredientInferClient;
 
     @Transactional(readOnly = true)
     public IngredientResolveResponse resolve(IngredientResolveRequest req) {
@@ -112,7 +111,7 @@ public class IngredientAddService {
         }
         // 2-3 AI 생성 → items + alias(AI) 생성
         else {
-            var ai = geminiClient.inferItemInfo(inputName);
+            var ai = ingredientInferClient.inferItemInfo(inputName);
 
             if (ai.itemName() == null || ai.itemName().isBlank()) {
                 throw new IllegalStateException("AI itemName 비어있음: " + ai);
