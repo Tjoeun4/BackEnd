@@ -11,6 +11,7 @@ public enum Category {
     CULTURE("문화/여가"),
     HEALTH("의료/건강"),
     RECEIPT("영수증"), // Expense에서 영수증 통합본임을 나타내는 용도
+    PANTRY("조미료"),
     ETC("기타");
 
     private final String description;
