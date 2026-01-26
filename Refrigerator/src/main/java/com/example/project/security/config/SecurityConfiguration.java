@@ -52,7 +52,10 @@ public class SecurityConfiguration {
             "/js/**",
             "/ws-stomp/**",      // 1. 웹소켓 엔드포인트 추가
             "/pub/**",           // 2. 메시지 발행 경로 추가 (컨트롤러 입구)
-            "/sub/**"           // 3. 메시지 구독 경로 추가
+            "/sub/**" ,
+            "/api/fridge/items/**",
+            "/api/fridge/ingredients/resolve",
+            "/api/fridge/ingredients"
     };
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;

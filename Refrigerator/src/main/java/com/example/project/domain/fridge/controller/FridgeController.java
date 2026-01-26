@@ -30,8 +30,10 @@ public class FridgeController {
     public ResponseEntity<List<FridgeItemDto>> getItems(
             @AuthenticationPrincipal Users user
     ) {
-        Long userId = user.getUserId();
-        return ResponseEntity.ok(fridgeService.getActiveItems(userId));
+        if (user == null) {
+            throw new IllegalStateException("인증이 필요합니다. Authorization: Bearer <accessToken> 헤더를 확인하세요.");
+        }
+        return ResponseEntity.ok(fridgeService.getActiveItems(user.getUserId()));
     }
 
     /**
@@ -41,8 +43,10 @@ public class FridgeController {
     public ResponseEntity<List<FridgeItemDto>> getItemsPlain(
             @AuthenticationPrincipal Users user
     ) {
-        Long userId = user.getUserId();
-        return ResponseEntity.ok(fridgeService.getActiveItemsOnly(userId));
+        if (user == null) {
+            throw new IllegalStateException("인증이 필요합니다. Authorization: Bearer <accessToken> 헤더를 확인하세요.");
+        }
+        return ResponseEntity.ok(fridgeService.getActiveItemsOnly(user.getUserId()));
     }
 
     /**
@@ -53,8 +57,10 @@ public class FridgeController {
             @PathVariable Long fridgeItemId,
             @AuthenticationPrincipal Users user
     ) {
-        Long userId = user.getUserId();
-        fridgeService.remove(userId, fridgeItemId);
+        if (user == null) {
+            throw new IllegalStateException("인증이 필요합니다. Authorization: Bearer <accessToken> 헤더를 확인하세요.");
+        }
+        fridgeService.remove(user.getUserId(), fridgeItemId);
         return ResponseEntity.noContent().build();
     }
 }
