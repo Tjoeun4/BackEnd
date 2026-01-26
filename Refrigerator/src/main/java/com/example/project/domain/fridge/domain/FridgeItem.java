@@ -38,7 +38,7 @@ public class FridgeItem extends BaseTimeEntity {
     private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id", nullable = false)
+    @JoinColumn(name = "item_id", nullable = true)
     private Items item;
 
     @Column(name = "raw_name", nullable = false, columnDefinition = "CLOB")
@@ -70,10 +70,31 @@ public class FridgeItem extends BaseTimeEntity {
             String unit,
             LocalDate purchaseDate,
             LocalDate expiryDate
+            
     ) {
         FridgeItem fi = new FridgeItem();
         fi.user = user;
         fi.item = item;
+        fi.rawName = rawName;
+        fi.quantity = quantity;
+        fi.unit = unit;
+        fi.purchaseDate = purchaseDate;
+        fi.expiryDate = expiryDate;
+        fi.status = "ACTIVE";
+        return fi;
+    }
+    
+    public static FridgeItem make(
+            Users user,
+            String rawName,
+            BigDecimal quantity,
+            String unit,
+            LocalDate purchaseDate,
+            LocalDate expiryDate
+            
+    ) {
+        FridgeItem fi = new FridgeItem();
+        fi.user = user;
         fi.rawName = rawName;
         fi.quantity = quantity;
         fi.unit = unit;

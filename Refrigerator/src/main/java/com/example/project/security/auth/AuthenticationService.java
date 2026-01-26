@@ -50,7 +50,8 @@ public class AuthenticationService {
 
 		// 회원 엔티티 생성
 		var user = Users.builder().nickname(request.getNickname()).email(request.getEmail())
-				.password(passwordEncoder.encode(request.getPassword())).gender(request.getGender())
+				.password(passwordEncoder.encode(request.getPassword()))
+				.gender(request.getGender())
 				.age(request.getAge()).zipCode(request.getZipcode()).addressBase(request.getAddressBase())
 				.addressDetail(request.getAddressDetail()).monthlyFoodBudget(request.getMonthlyFoodBudget())
 				.neighborhood(neighborhood1.get()).build();
