@@ -58,8 +58,13 @@ public class GroupBuyPostService {
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
         FoodCategory category = categoryRepository.findById(request.getCategoryId())
-               .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다."));
+               .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다. categoryId: " + request.getCategoryId()));
         Neighborhood neighborhood = user.getNeighborhood();
+        
+        // neighborhood null 체크
+        if (neighborhood == null) {
+            throw new IllegalStateException("사용자의 동네(neighborhood) 정보가 설정되지 않았습니다. 사용자 ID: " + userId);
+        }
 
         // 2. 게시글 엔티티 빌더를 사용하여 생성
         GroupBuyPost post = GroupBuyPost.builder()

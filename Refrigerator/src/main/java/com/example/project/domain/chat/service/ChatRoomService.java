@@ -34,11 +34,10 @@ public class ChatRoomService {
         Users me = findUserById(userId);
         Users target = findUserById(targetId);
 
-     // 1. [추가] 이미 두 사람 사이에 개인 채팅방이 있는지 먼저 확인
-        // 레포지토리에 @Query로 작성했던 그 메서드를 사용합니다.
+     // 이미 두 사람 사이에 개인 채팅방이 있는지 먼저 확인 - 팀장님 이거 제가 추가햇어여
         Optional<Long> existingRoomId = chatRoomMemberRepository.findPersonalRoomBetweenUsers(userId, targetId);
         
-        // 만약 방이 이미 있다면, 새로 만들지 않고 기존 방 ID를 바로 반환합니다.
+        // 만약 방이 이미 있다면, 새로 만들지 않고 기존 방 ID를 바로 반환
         if (existingRoomId.isPresent()) {
             return existingRoomId.get();
         }
@@ -72,16 +71,35 @@ public class ChatRoomService {
     }
 
     /**
-     * 2. 공구/나눔 전용 채팅방 생성 (GROUP_BUY)
-     * 게시글에서 '채팅하기'를 눌렀을 때 게시글 정보와 연동하여 생성
+     * 2. 공구/나눔 전용 채팅방 생성/참가 (GROUP_BUY)
+     * 게시글에서 '채팅하기'를 눌렀을 때 게시글 정보와 연동하여 생성 또는 기존 방에 참가
      */
     @Transactional
     public Long createGroupBuyChatRoom(Long userId, Long postId) {
-        Users creator = findUserById(userId);
+        Users user = findUserById(userId);
         GroupBuyPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
-        // 공구 방은 게시글 제목을 기본 방 이름으로 설정
+        // 1. 기존 방이 있는지 확인 (같은 postId + GROUP_BUY 타입)
+        Optional<ChatRoom> existingRoom = chatRoomRepository.findByPostPostIdAndType(postId, ChatRoomType.GROUP_BUY);
+        
+        if (existingRoom.isPresent()) {
+            ChatRoom room = existingRoom.get();
+            Long roomId = room.getRoomId();
+            
+            // 2. 이미 참가 중인지 확인
+            boolean alreadyJoined = chatRoomMemberRepository.existsByRoomRoomIdAndUserUserId(roomId, userId);
+            if (alreadyJoined) {
+                // 이미 참가 중이면 기존 방 ID 반환
+                return roomId;
+            }
+            
+            // 3. 기존 방에 참가 (PARTICIPANT로 추가)
+            saveChatRoomMember(user, room, MemberRole.PARTICIPANT);
+            return roomId;
+        }
+        
+        // 4. 기존 방이 없으면 새로 생성
         ChatRoom chatRoom = ChatRoom.builder()
                 .type(ChatRoomType.GROUP_BUY)
                 .post(post)
@@ -89,11 +107,8 @@ public class ChatRoomService {
                 .build();
         chatRoomRepository.save(chatRoom);
 
-        // 방장 등록
-        saveChatRoomMember(creator, chatRoom, MemberRole.OWNER);
-        
-        // 추가 로직: 게시글 작성자(판매자)도 자동으로 이 방에 참여시켜야 한다면 여기서 추가
-        // saveChatRoomMember(post.getSeller(), chatRoom, MemberRole.PARTICIPANT);
+        // 첫 참가자는 OWNER로 등록
+        saveChatRoomMember(user, chatRoom, MemberRole.OWNER);
 
         return chatRoom.getRoomId();
     }
