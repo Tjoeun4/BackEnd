@@ -38,7 +38,7 @@ public class PantryController {
     }
 
     @DeleteMapping("/{pantryItemId}")
-    public ResponseEntity<Map<String, Object>> removePantry(@PathVariable Long pantryItemId) {
+    public ResponseEntity<Map<String, Object>> removePantry(@PathVariable("pantryItemId") Long pantryItemId) {
         pantryService.removePantryItem(pantryItemId);
         return ResponseEntity.ok(Map.of("ok", true));
     }
