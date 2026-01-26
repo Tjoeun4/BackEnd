@@ -103,8 +103,8 @@ public class ExpenseController {
     @GetMapping("/monthly")
     public ResponseEntity<Page<ExpenseResponse>> getMonthlyExpenses(
             @AuthenticationPrincipal Users userDetails,
-            @RequestParam int year,
-            @RequestParam int month,
+            @RequestParam("year") int year,    // ✅ ("year") 추가
+            @RequestParam("month") int month,  // ✅ ("month") 추가
             @PageableDefault(size = 15, sort = "spentAt", direction = Sort.Direction.DESC) Pageable pageable) {
         
         return ResponseEntity.ok(expenseService.getMonthlyExpenses(userDetails.getUserId(), year, month, pageable));
@@ -114,8 +114,8 @@ public class ExpenseController {
     @GetMapping("/monthly/daily-summary")
     public ResponseEntity<MonthlyDailySummaryResponse> getDailySummary(
             @AuthenticationPrincipal Users userDetails,
-            @RequestParam int year,
-            @RequestParam int month) {
+            @RequestParam("year") int year,    // ✅ ("year") 추가
+            @RequestParam("month") int month) { // ✅ ("month") 추가
         
         return ResponseEntity.ok(expenseService.getDailySummary(userDetails.getUserId(), year, month));
     }
@@ -124,7 +124,7 @@ public class ExpenseController {
     @GetMapping("/daily")
     public ResponseEntity<List<ExpenseResponse>> getDailyExpenses(
             @AuthenticationPrincipal Users userDetails,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) { // ✅ ("date") 추가
         
         return ResponseEntity.ok(expenseService.getDailyExpenses(userDetails.getUserId(), date));
     }

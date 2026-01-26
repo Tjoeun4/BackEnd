@@ -16,9 +16,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReceiptGeminiClient {
 
-    @Value("${google.gemini.api.key}")
-    private String apiKey;
-    
+    @Value("${gemini.api-key}")
+    private String apiKey;    
     @Value("${gemini.base-url}")
     private String baseUrl;
 

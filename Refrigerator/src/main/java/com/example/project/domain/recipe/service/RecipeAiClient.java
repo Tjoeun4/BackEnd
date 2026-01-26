@@ -21,9 +21,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RecipeAiClient {
     
-	@Value("${google.gemini.api.key}")
-    private String apiKey;
-
+	@Value("${gemini.api-key}")
+	private String apiKey;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate = new RestTemplate();
 

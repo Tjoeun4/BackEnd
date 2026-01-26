@@ -13,7 +13,7 @@ public class GeminiConfig {
     @Bean
     public WebClient geminiWebClient(GeminiProperties props) {
         return WebClient.builder()
-            .baseUrl(props.baseUrl())
+            .baseUrl(props.baseUrl() + "?key=" + props.apiKey())
             .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
             .build();
     }
