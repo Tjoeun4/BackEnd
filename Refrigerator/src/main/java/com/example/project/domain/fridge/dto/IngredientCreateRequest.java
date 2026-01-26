@@ -2,11 +2,14 @@ package com.example.project.domain.fridge.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class IngredientCreateRequest {
     private Long userId;
