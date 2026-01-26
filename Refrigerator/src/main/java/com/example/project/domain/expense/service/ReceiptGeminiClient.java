@@ -34,7 +34,7 @@ public class ReceiptGeminiClient {
             System.out.println("\n[DEBUG] 1단계: OCR 텍스트 추출 시작...");
             String extractedText = ocrClient.getTextOnly(file);
             System.out.println("[DEBUG] OCR 결과 데이터: " + extractedText);
-            
+
             if (extractedText == null || extractedText.trim().isEmpty() || extractedText.startsWith("Error:")) {
                 System.out.println("[ERROR] OCR 추출 실패 혹은 에러 발생: " + extractedText);
                 throw new RuntimeException("OCR 결과가 유효하지 않음");
@@ -53,11 +53,11 @@ public class ReceiptGeminiClient {
                   3. quantity: 수량 (숫자)
                   4. amount: 용량 또는 단위 (예: "500g", "360ml", "1묶음"). 정보가 없으면 null.
                   5. price: 해당 항목 총액 (숫자)
-                  6. category: 다음 중 하나 (MEAL, INGREDIENT, READY_MEAL, DRINK, ETC)
+                  6. category: 다음 중 하나 (MEAL, INGREDIENT, READY_MEAL, DRINK, ETC, PANTRY)
                   7. isFridgeTarget: 식재료로서 냉장고 보관 대상이면 true, 아니면 false
             	  8. subCategory: 식재료의 상세 분류 (예: 육류, 야채, 수산물, 조미료, 가공식품 등 문맥에 따라 분류)
-            	  9. sellByDate: 영수증에 표시된 유통기한 (yyyy-MM-dd). 정보가 없으면 null.
-                  10. useByDate: 영수증에 표시된 소비기한 (yyyy-MM-dd). 정보가 없으면 null.
+            	  9. sellByDate: (yyyy-MM-dd). 정보가 없으면 현재날짜 기준으로 찾아서 넣기.
+                  10. useByDate: (yyyy-MM-dd). 정보가 ㅍ없으면 현재날짜 기준으로 찾아서 넣기.
                 마크다운 없이 순수 JSON만 반환하세요.
                 """;
             // 추출된 텍스트를 프롬프트에 합침
