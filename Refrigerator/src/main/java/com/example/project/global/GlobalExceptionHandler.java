@@ -12,7 +12,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -66,6 +68,8 @@ public class GlobalExceptionHandler {
     // -------------------------------
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        // 원인 파악: 서버 콘솔/로그에 실제 예외 출력 (INTERNAL_SERVER_ERROR 시 확인)
+        log.error("INTERNAL_SERVER_ERROR: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
 
         ErrorResponse response = ErrorResponse.builder()
                 .success(false)
