@@ -1,5 +1,6 @@
 package com.example.project.domain.fridge.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,5 +38,8 @@ public interface FridgeItemRepository extends JpaRepository<FridgeItem, Long> {
 
     /** 삭제 시 본인 소유 여부 확인용 */
     Optional<FridgeItem> findByFridgeItemIdAndUser_UserId(Long fridgeItemId, Long userId);
+
+    /** status=REMOVED 이고 updatedAt이 지정 시점보다 이전인 것 (소프트삭제 10일 경과 분) */
+    List<FridgeItem> findByStatusAndUpdatedAtBefore(String status, LocalDateTime updatedAt);
 
 }

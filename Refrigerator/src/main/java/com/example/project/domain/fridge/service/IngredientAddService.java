@@ -13,8 +13,10 @@ import com.example.project.domain.fridge.domain.FoodCategoryType;
 import com.example.project.domain.fridge.domain.FridgeItem;
 import com.example.project.domain.fridge.domain.ItemAlias;
 import com.example.project.domain.fridge.domain.Items;
+import com.example.project.domain.fridge.dto.IngredientCreateBulkRequest;
 import com.example.project.domain.fridge.dto.IngredientCreateRequest;
 import com.example.project.domain.fridge.dto.IngredientCreateResponse;
+import com.example.project.domain.fridge.dto.IngredientResolveMultiRequest;
 import com.example.project.domain.fridge.dto.IngredientResolveRequest;
 import com.example.project.domain.fridge.dto.IngredientResolveResponse;
 import com.example.project.domain.fridge.repository.FridgeItemRepository;
@@ -38,14 +40,33 @@ public class IngredientAddService {
 
     @Transactional(readOnly = true)
     public IngredientResolveResponse resolve(IngredientResolveRequest req) {
-        String input = normalize(req.getInputName());
+        return resolveOne(req.getInputName());
+    }
+
+    // 여러 개 한 번에 resolve 
+    @Transactional(readOnly = true)
+    public List<IngredientResolveResponse> resolveMulti(IngredientResolveMultiRequest req) {
+        List<String> names = req.getInputNames() != null ? req.getInputNames() : List.of();
+        List<IngredientResolveResponse> results = new ArrayList<>();
+        for (String name : names) {
+            if (name == null || name.isBlank()) {
+                results.add(IngredientResolveResponse.aiPending("입력값이 비어 있습니다."));
+            } else {
+                results.add(resolveOne(name));
+            }
+        }
+        return results;
+    }
+
+    // resolve 1건 (resolve / resolveMulti 공통 로직)
+    private IngredientResolveResponse resolveOne(String inputName) {
+        String input = normalize(inputName);
 
         // 2-1) alias 완전일치
         var aliasOpt = itemAliasRepository.findByRawName(input);
         if (aliasOpt.isPresent()) {
             ItemAlias alias = aliasOpt.get();
             Items item = alias.getItem();
-
             var c = new IngredientResolveResponse.AliasCandidate(
                 alias.getId(),
                 alias.getRawName(),
@@ -56,17 +77,11 @@ public class IngredientAddService {
         }
 
         // 2-2) items 후보 조회 (양방향 매칭)
-        // A) name LIKE %input% (기존)
         List<Items> a = itemsRepository.findByNameContaining(input);
-
-        // B) input LIKE %name% (추가) → "수미감자" 입력 시 "감자" 후보가 뜨게
         List<Items> b = itemsRepository.findWhereInputContainsItemName(input);
-
-        // 합치기(중복 제거)
         Map<Long, Items> merged = new LinkedHashMap<>();
         for (Items i : a) merged.put(i.getId(), i);
         for (Items i : b) merged.put(i.getId(), i);
-
         List<Items> candidates = new ArrayList<>(merged.values());
 
         if (!candidates.isEmpty()) {
@@ -77,7 +92,6 @@ public class IngredientAddService {
                     i.getExpirationNum()
                 ))
                 .toList();
-
             return IngredientResolveResponse.pickItem(list);
         }
 
@@ -89,7 +103,28 @@ public class IngredientAddService {
     public IngredientCreateResponse create(IngredientCreateRequest req) {
         Users user = usersRepository.findById(req.getUserId())
             .orElseThrow(() -> new EntityNotFoundException("User not found: " + req.getUserId()));
+        return createOne(user, req);
+    }
 
+    // 여러 개 한 번에 추가
+    @Transactional
+    public List<IngredientCreateResponse> createMulti(IngredientCreateBulkRequest multi) {
+        Users user = usersRepository.findById(multi.getUserId())
+            .orElseThrow(() -> new EntityNotFoundException("User not found: " + multi.getUserId()));
+
+        List<IngredientCreateRequest> items = multi.getItems() != null ? multi.getItems() : List.of();
+        List<IngredientCreateResponse> results = new ArrayList<>();
+
+        for (IngredientCreateRequest req : items) {
+            if (req == null) continue;
+            req.setUserId(multi.getUserId());
+            results.add(createOne(user, req));
+        }
+        return results;
+    }
+
+    // 식재료 1개 추가 
+    private IngredientCreateResponse createOne(Users user, IngredientCreateRequest req) {
         String inputName = normalize(req.getInputName());
 
         Items item;
