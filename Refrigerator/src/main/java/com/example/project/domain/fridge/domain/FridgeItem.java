@@ -83,4 +83,9 @@ public class FridgeItem extends BaseTimeEntity {
         return fi;
     }
 
+    /** 소프트 삭제: status를 REMOVED로 변경 (목록 조회 제외) */
+    public void markAsRemoved() {
+        this.status = "REMOVED";
+    }
+
 }

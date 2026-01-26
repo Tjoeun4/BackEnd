@@ -1,6 +1,7 @@
 package com.example.project.domain.fridge.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,5 +35,7 @@ public interface FridgeItemRepository extends JpaRepository<FridgeItem, Long> {
     @Query("SELECT f.item FROM FridgeItem f WHERE f.user.userId = :userId AND f.item.categoryId = :categoryId AND f.status = 'ACTIVE'")
     List<Items> findItemsByUserIdAndCategory(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
 
+    /** 삭제 시 본인 소유 여부 확인용 */
+    Optional<FridgeItem> findByFridgeItemIdAndUser_UserId(Long fridgeItemId, Long userId);
 
 }
