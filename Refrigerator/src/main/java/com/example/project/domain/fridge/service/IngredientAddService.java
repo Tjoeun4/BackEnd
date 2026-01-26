@@ -1,5 +1,13 @@
 package com.example.project.domain.fridge.service;
 
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.project.domain.fridge.domain.FoodCategoryType;
 import com.example.project.domain.fridge.domain.FridgeItem;
 import com.example.project.domain.fridge.domain.ItemAlias;
@@ -13,13 +21,9 @@ import com.example.project.domain.fridge.repository.ItemAliasRepository;
 import com.example.project.domain.fridge.repository.ItemsRepository;
 import com.example.project.member.domain.Users;
 import com.example.project.member.repository.UsersRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.*;
 
 @Service
 @RequiredArgsConstructor
