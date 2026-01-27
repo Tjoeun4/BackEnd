@@ -353,6 +353,15 @@ public class GroupBuyPostService {
     }
 
     /**
+     * currentParticipants가 가장 높은 게시글 하나 반환 (같으면 최신순)
+     */
+    public GroupBuyPostResponse getMostPopularPost() {
+        GroupBuyPost post = postRepository.findFirstByOrderByCurrentParticipantsDescCreatedAtDesc()
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+        return convertToResponse(post);
+    }
+
+    /**
      * [READ] Entity -> DTO 변환 시 이미지 URL 리스트 포함
      */
     private GroupBuyPostResponse convertToResponse(GroupBuyPost post) {

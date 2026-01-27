@@ -158,4 +158,10 @@ public class GroupBuyPostController {
         return ResponseEntity.ok("게시글 삭제가 완료되었습니다.");
     }
     
+    // 9. 참여 인원이 가장 많은 게시글 조회 (같으면 최신순)
+    @GetMapping("/most-popular")
+    public ResponseEntity<GroupBuyPostResponse> getMostPopularPost() {
+        return ResponseEntity.ok(groupBuyPostService.getMostPopularPost());
+    }
+    
 }

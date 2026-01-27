@@ -36,4 +36,7 @@ public interface GroupBuyPostRepository extends JpaRepository<GroupBuyPost, Long
 	        @Param("keyword") String keyword, 
 	        @Param("neighborhoodId") Long neighborhoodId
 	    );
+	
+	/** currentParticipants가 가장 높은 게시글 하나 반환 (같으면 최신순) */
+	Optional<GroupBuyPost> findFirstByOrderByCurrentParticipantsDescCreatedAtDesc();
 }
