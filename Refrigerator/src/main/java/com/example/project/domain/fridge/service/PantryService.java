@@ -48,15 +48,37 @@ public class PantryService {
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    /** 활성 항목이 이미 존재하는지 확인 */
+    @Transactional(readOnly = true)
+    public boolean isActiveItemExists(Long userId, String itemName) {
+        if (itemName == null || itemName.isBlank()) return false;
+        return pantryItemRepository.findActiveByUserIdAndName(userId, itemName.trim()).isPresent();
+    }
+
     @Transactional
     public void addPantryItem(Long userId, String itemName) {
         if (itemName == null || itemName.isBlank()) return;
 
-        pantryItemRepository.findAnyByUserIdAndName(userId, itemName).ifPresentOrElse(existing -> {
-            // 이미 존재하면 delFlag만 복구하고 싶으면 로직 확장 가능
-        }, () -> {
-            pantryItemRepository.save(new PantryItem(userId, itemName.trim()));
-        });
+        String trimmedName = itemName.trim();
+        
+        // 활성 항목(delFlag='N')이 이미 있는지 확인 
+        Optional<PantryItem> activeItem = pantryItemRepository.findActiveByUserIdAndName(userId, trimmedName);
+        if (activeItem.isPresent()) {
+            // 이미 활성 항목이 있으면 중복 추가 방지
+            return;
+        }
+
+        // 2. 삭제된 항목(delFlag='Y')이 있는지 확인
+        Optional<PantryItem> deletedItem = pantryItemRepository.findAnyByUserIdAndName(userId, trimmedName);
+        if (deletedItem.isPresent()) {
+            PantryItem item = deletedItem.get();
+            // 삭제된 항목이 있으면 복구
+            item.restore();
+            return;
+        }
+
+        // 3. 완전히 새로운 항목이면 생성
+        pantryItemRepository.save(new PantryItem(userId, trimmedName));
     }
 
     @Transactional

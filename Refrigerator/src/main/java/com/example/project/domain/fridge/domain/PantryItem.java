@@ -39,4 +39,9 @@ public class PantryItem {
     public void delete() {
         this.delFlag = "Y";
     }
+
+    /** 삭제된 항목 복구 */
+    public void restore() {
+        this.delFlag = "N";
+    }
 }
