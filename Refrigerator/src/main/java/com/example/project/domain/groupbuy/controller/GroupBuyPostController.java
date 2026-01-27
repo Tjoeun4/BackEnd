@@ -19,39 +19,56 @@ import com.example.project.domain.groupbuy.dto.GroupBuyPostCreateRequest;
 import com.example.project.domain.groupbuy.dto.GroupBuyPostResponse;
 import com.example.project.domain.groupbuy.service.GroupBuyPostService;
 import com.example.project.member.domain.Users;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 
+@Slf4j
 @RestController
 @RequestMapping("/api/group-buy")
 @RequiredArgsConstructor
 public class GroupBuyPostController {
 
     private final GroupBuyPostService groupBuyPostService;
+    private final ObjectMapper objectMapper;
 
  // 1. 게시글 등록 (글 + 이미지 통합)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Long> createPost(
-            @RequestPart("postDto") GroupBuyPostCreateRequest request,
+            @RequestParam("postDto") String postDtoJson,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @AuthenticationPrincipal Users userDetails
     ) {
-        // 서비스에서 글 생성과 이미지 저장을 한 번에 처리하도록 호출
-        Long postId = groupBuyPostService.createPostWithImages(userDetails.getUserId(), request, files);
-        return ResponseEntity.ok(postId);
+        try {
+            // JSON 문자열을 DTO로 파싱
+            GroupBuyPostCreateRequest request = objectMapper.readValue(postDtoJson, GroupBuyPostCreateRequest.class);
+            // 서비스에서 글 생성과 이미지 저장을 한 번에 처리하도록 호출
+            Long postId = groupBuyPostService.createPostWithImages(userDetails.getUserId(), request, files);
+            return ResponseEntity.ok(postId);
+        } catch (Exception e) {
+            log.error("postDto JSON 파싱 실패: {}", postDtoJson, e);
+            throw new IllegalArgumentException("postDto JSON 형식이 올바르지 않습니다: " + e.getMessage());
+        }
     }
 
     // 2. 게시글 수정 (글 수정 + 이미지 교체)
     @PostMapping(value = "/{postId}/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> updatePost(
             @PathVariable("postId") Long postId,
-            @RequestPart("postDto") GroupBuyPostCreateRequest request,
+            @RequestParam("postDto") String postDtoJson,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @AuthenticationPrincipal Users userDetails) {
-        
-        groupBuyPostService.updatePostWithImages(postId, request, files, userDetails);
-        return ResponseEntity.ok("게시글 수정 완료");
+        try {
+            // JSON 문자열을 DTO로 파싱
+            GroupBuyPostCreateRequest request = objectMapper.readValue(postDtoJson, GroupBuyPostCreateRequest.class);
+            groupBuyPostService.updatePostWithImages(postId, request, files, userDetails);
+            return ResponseEntity.ok("게시글 수정 완료");
+        } catch (Exception e) {
+            log.error("postDto JSON 파싱 실패: {}", postDtoJson, e);
+            throw new IllegalArgumentException("postDto JSON 형식이 올바르지 않습니다: " + e.getMessage());
+        }
     }
 
     

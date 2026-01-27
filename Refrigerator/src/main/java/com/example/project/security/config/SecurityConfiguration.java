@@ -55,7 +55,9 @@ public class SecurityConfiguration {
             "/sub/**" ,
             "/api/fridge/items/**",
             "/api/fridge/ingredients/resolve",
-            "/api/fridge/ingredients"
+            "/api/fridge/ingredients",
+            "/api/chat/room/group-buy",
+            "/api/group-buy"
     };
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
