@@ -19,11 +19,22 @@ public interface PantryItemRepository extends JpaRepository<PantryItem, Long> {
     """)
     List<PantryItem> findActiveByUserId(@Param("userId") Long userId);
 
+    /** 활성 항목(delFlag='N') 중에서 이름으로 찾기 */
     @Query("""
         select p
         from PantryItem p
         where p.userId = :userId
-          and lower(p.itemName) = lower(:itemName)
+          and trim(p.itemName) = trim(:itemName)
+          and p.delFlag = 'N'
+    """)
+    Optional<PantryItem> findActiveByUserIdAndName(@Param("userId") Long userId, @Param("itemName") String itemName);
+
+    /** 삭제된 항목 포함 모든 항목 중에서 이름으로 찾기 */
+    @Query("""
+        select p
+        from PantryItem p
+        where p.userId = :userId
+          and trim(p.itemName) = trim(:itemName)
     """)
     Optional<PantryItem> findAnyByUserIdAndName(@Param("userId") Long userId, @Param("itemName") String itemName);
 }
