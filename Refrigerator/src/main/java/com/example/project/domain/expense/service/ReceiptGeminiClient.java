@@ -1,15 +1,21 @@
 package com.example.project.domain.expense.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.example.project.domain.expense.dto.ReceiptAnalysisResponse;
 import com.example.project.global.config.OcrClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -42,13 +48,22 @@ public class ReceiptGeminiClient {
 
             System.out.println("[DEBUG] 2단계: Gemini 요청 바디 구성 중...");
             String url = String.format("%s/v1beta/models/%s:generateContent?key=%s", baseUrl, model, apiKey);
-            
+         // 1. 현재 날짜와 시간 가져오기
+            String today = LocalDate.now().toString(); // "2026-01-28"
+            String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
          // ReceiptGeminiClient.java 내부 프롬프트 부분 수정
             String prompt = """
                 영수증 이미지를 분석하여 JSON으로 응답하세요. 
-                - storeName, totalAmount, purchasedAt(yyyy-MM-ddTHH:mm:ss), summaryMemo 포함
+            	오늘 날짜는 %s입니다.
+                [날짜 처리 원칙]
+			    1. purchasedAt: 
+			       - 추출된 구매 날짜가 오늘(%s)과 1년 이상 차이가 나면 오인식으로 간주하고, 오늘 일시인 '%s'로 설정하세요.
+			    2. sellByDate & useByDate:
+			       - 영수증에 유통기한이 없거나 이미 지난 날짜라면, 오늘(%s)을 기준으로 품목별(신선식품, 가공식품 등) 통상적인 기간을 더해 유추하세요.
+			    [JSON 필드 구성]
                 - items 리스트 내부 필수 필드:
-                  1. itemName: 상품명
+                - storeName, totalAmount, purchasedAt(yyyy-MM-ddTHH:mm:ss), summaryMemo
+                  1. itemName: 상품명 (* 별표나 그런거 없이 순수한 이름으로 출력하도록 하기)
                   2. unitAmount: 단가 (숫자)
                   3. quantity: 수량 (숫자)
                   4. amount: 용량 또는 단위 (예: "500g", "360ml", "1묶음"). 정보가 없으면 null.
@@ -56,10 +71,10 @@ public class ReceiptGeminiClient {
                   6. category: 다음 중 하나 (MEAL, INGREDIENT, READY_MEAL, DRINK, ETC, PANTRY)
                   7. isFridgeTarget: 식재료로서 냉장고 보관 대상이면 true, 아니면 false
             	  8. subCategory: 식재료의 상세 분류 (예: 육류, 야채, 수산물, 조미료, 가공식품 등 문맥에 따라 분류)
-            	  9. sellByDate: (yyyy-MM-dd). 정보가 없으면 현재날짜 기준으로 찾아서 넣기.
-                  10. useByDate: (yyyy-MM-dd). 정보가 ㅍ없으면 현재날짜 기준으로 찾아서 넣기.
+            	  9. sellByDate: (yyyy-MM-dd). 
+                  10. useByDate: (yyyy-MM-dd). 
                 마크다운 없이 순수 JSON만 반환하세요.
-                """;
+                """.formatted(today, today, now, today);;
             // 추출된 텍스트를 프롬프트에 합침
             String finalPrompt = prompt + "\n\n[분석할 영수증 데이터]:\n" + extractedText;
 
