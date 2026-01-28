@@ -50,7 +50,7 @@ public class Expense extends BaseTimeEntity {
     @Column(name = "memo")
     private String memo; // AI가 요약한 영수증 아이템 리스트 (01..., 02...)
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true) // 👈 orphanRemoval 추가
     @JoinColumn(name = "receipt_id")
     private ReceiptScan receiptScan;
 
