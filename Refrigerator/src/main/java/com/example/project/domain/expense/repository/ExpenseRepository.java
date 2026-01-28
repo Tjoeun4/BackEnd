@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.example.project.domain.expense.domain.Category;
 import com.example.project.domain.expense.domain.Expense;
@@ -30,15 +31,24 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     // 예시: 특정 기간 내 유저의 지출 조회
     Page<Expense> findByUserUserIdAndSpentAtBetween(Long userId, LocalDateTime start, LocalDateTime end, Pageable pageable);
 
-    // 특정 유저의 지출을 날짜별로 그룹화하여 합산 (JPQL 또는 QueryDSL 권장)
     @Query("SELECT new com.example.project.domain.expense.dto.DailyAmount(CAST(e.spentAt AS LocalDate), SUM(e.amount)) " +
             "FROM Expense e WHERE e.user.userId = :userId AND e.spentAt BETWEEN :start AND :end " +
             "GROUP BY CAST(e.spentAt AS LocalDate) " +
-            "ORDER BY CAST(e.spentAt AS LocalDate) ASC") // 👈 GROUP BY와 정렬 기준을 동일하게 맞춤
-    List<DailyAmount> findDailySummaryByMonth(Long userId, LocalDateTime start, LocalDateTime end);
-    
+            "ORDER BY CAST(e.spentAt AS LocalDate) ASC")
+    List<DailyAmount> findDailySummaryByMonth(
+        @Param("userId") Long userId,     // 👈 @Param 추가
+        @Param("start") LocalDateTime start, // 👈 @Param 추가
+        @Param("end") LocalDateTime end      // 👈 @Param 추가
+    );
  // 3. 특정 날짜 상세 조회 (리스트)
     List<Expense> findByUserUserIdAndSpentAtBetweenOrderBySpentAtDesc(Long userId, LocalDateTime start, LocalDateTime end);
     
-    
+    @Query("SELECT e FROM Expense e WHERE e.user.userId = :userId " +
+    	       "AND FUNCTION('TO_CHAR', e.spentAt, 'YYYY') = :year " +
+    	       "AND FUNCTION('TO_CHAR', e.spentAt, 'MM') = :month")
+    	List<Expense> findMonthlyExpenses(
+    	    @Param("userId") Long userId, 
+    	    @Param("year") String year, 
+    	    @Param("month") String month
+    	);
 }
