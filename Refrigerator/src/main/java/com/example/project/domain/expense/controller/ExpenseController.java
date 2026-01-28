@@ -103,8 +103,8 @@ public class ExpenseController {
     @GetMapping("/monthly")
     public ResponseEntity<Page<ExpenseResponse>> getMonthlyExpenses(
             @AuthenticationPrincipal Users userDetails,
-            @RequestParam int year,
-            @RequestParam int month,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
             @PageableDefault(size = 15, sort = "spentAt", direction = Sort.Direction.DESC) Pageable pageable) {
         
         return ResponseEntity.ok(expenseService.getMonthlyExpenses(userDetails.getUserId(), year, month, pageable));
@@ -114,8 +114,8 @@ public class ExpenseController {
     @GetMapping("/monthly/daily-summary")
     public ResponseEntity<MonthlyDailySummaryResponse> getDailySummary(
             @AuthenticationPrincipal Users userDetails,
-            @RequestParam int year,
-            @RequestParam int month) {
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
         
         return ResponseEntity.ok(expenseService.getDailySummary(userDetails.getUserId(), year, month));
     }
