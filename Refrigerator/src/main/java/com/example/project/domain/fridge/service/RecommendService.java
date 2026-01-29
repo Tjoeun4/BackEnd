@@ -24,10 +24,7 @@ public class RecommendService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * ✅ 냉장고 + 팬트리만으로 요리 3개 추천
-     * ❌ 추가 재료 절대 불가
-     */
+
     @Transactional(readOnly = true)
     public RecommendResponse recommend3OnlyAllowed(Long userId) {
         if (userId == null) throw new IllegalArgumentException("userId is required");
@@ -162,7 +159,7 @@ public class RecommendService {
         return """
         이전 응답이 규칙을 위반했다. 다시 생성해.
 
-        🚨 절대 규칙: 팬트리+냉장고 재료 외 재료 금지. 각 요리 냉장고 재료 최소 1개. 요리 3개. JSON만 출력.
+        🚨 절대 규칙: 팬트리+냉장고 재료 외 재료 금지. 각 요리 냉장고 재료 최소 1개. 요리 1~5개 (가능한 만큼, 최소 1개 이상). JSON만 출력.
 
         팬트리: %s
         냉장고 재료(JSON): %s
@@ -224,7 +221,9 @@ public class RecommendService {
 
     private boolean isValid(RecommendResponse res, List<FridgeItem> fridgeItems, Set<String> allowed) {
         if (res == null || res.recipes() == null) return false;
-        if (res.recipes().size() != 3) return false;
+        // 요리 개수: 최소 1개 이상, 최대 5개 이하
+        int recipeCount = res.recipes().size();
+        if (recipeCount < 1 || recipeCount > 5) return false;
 
      // 1. 냉장고 재료 이름들 모으기
         Set<String> fridgeNames = new HashSet<>();
