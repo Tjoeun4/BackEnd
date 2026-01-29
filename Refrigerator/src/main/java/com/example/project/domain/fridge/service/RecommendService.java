@@ -86,7 +86,7 @@ public class RecommendService {
             out.add(one);
         }
 
-        // 유통기한 임박 순(작은 daysLeft 우선)
+        
         out.sort(Comparator.comparing(m -> (Integer) m.get("daysLeft"), Comparator.nullsLast(Integer::compareTo)));
         return out;
     }
@@ -116,10 +116,10 @@ public class RecommendService {
         너는 냉장고+팬트리 재료만으로 요리 추천하는 AI다.
 
         🚨 절대 규칙:
-        1) "팬트리" + "냉장고 재료" 외 재료는 ❌ 절대 사용·언급 금지.
+        1) "팬트리" + "냉장고 재료" 외 재료는 절대 사용 금지.
         2) 추가 재료 구매 불가. ingredients·steps 어디에도 목록 밖 재료 금지.
         3) 각 요리는 냉장고 재료를 1개 이상 사용 (팬트리만으로는 불가).
-        4) 요리 정확히 3개. 유통기한 임박(daysLeft 작은) 재료 우선 활용.
+        4) 요리 정확히 3개. 
         5) 아래 JSON만 출력. 다른 텍스트/코드블록/마크다운 금지.
 
         팬트리: %s
@@ -134,11 +134,14 @@ public class RecommendService {
               "summary": "한줄 설명",
               "estimatedMinutes": 5~90 정수,
               "difficulty": "EASY|MEDIUM|HARD",
-              "ingredients": ["사용한 재료 전부(팬트리+냉장고 내, 냉장고 최소 1개)"],
+              "ingredients": ["재료명 수량단위(예: 당근 2개, 양파 1개, 마늘 3쪽, 식용유 1큰술)"],
               "steps": ["조리 단계 1", "조리 단계 2", "..."]
             }
           ]
         }
+        
+        중요: ingredients 배열의 각 문자열은 반드시 "재료명 수량단위" 형식이어야 합니다.
+        예시: "당근 2개", "양파 1개", "마늘 3쪽", "식용유 1큰술", "소금 적당량"
         """.formatted(String.join(", ", pantryNames), toJson(fridge));
     }
 
@@ -152,7 +155,7 @@ public class RecommendService {
         냉장고 재료(JSON): %s
         (참고) 이전 잘못된 응답: %s
 
-        출력 스키마: { "recipes": [ { "title", "summary", "estimatedMinutes", "difficulty", "ingredients": ["재료(팬트리+냉장고 내, 냉장고 최소 1개)"], "steps": ["..."] } ] }
+        출력 스키마: { "recipes": [ { "title", "summary", "estimatedMinutes", "difficulty", "ingredients": ["재료명 수량단위"], "steps": ["..."] } ] }
         """.formatted(String.join(", ", pantryNames), toJson(fridge), safeBadSummary(bad));
     }
 
@@ -224,18 +227,41 @@ public class RecommendService {
             if (r.ingredients() == null || r.ingredients().isEmpty()) return false;
             if (r.steps() == null || r.steps().isEmpty()) return false;
 
+            // 재료 문자열에서 재료명만 추출하여 검증 (예: "당근 2개" -> "당근")
             boolean usesAtLeastOneFridgeItem = r.ingredients().stream()
+                .filter(Objects::nonNull)
+                .map(ing -> extractIngredientName(ing))
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .anyMatch(fridgeNames::contains);
             if (!usesAtLeastOneFridgeItem) return false;
 
-            for (String used : r.ingredients()) {
-                if (used == null) continue;
-                if (!allowed.contains(used.trim())) return false;
+            for (String ing : r.ingredients()) {
+                if (ing == null) continue;
+                String name = extractIngredientName(ing);
+                if (name != null && !allowed.contains(name.trim())) return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * 재료 문자열에서 재료명만 추출 (예: "당근 2개" -> "당근")
+     */
+    private String extractIngredientName(String ingredient) {
+        if (ingredient == null || ingredient.isBlank()) return null;
+        
+        // 숫자, 공백, 단위 등을 제거하고 재료명만 추출
+        // 예: "당근 2개" -> "당근", "양파 1개" -> "양파"
+        String trimmed = ingredient.trim();
+        
+        // 공백으로 분리하여 첫 번째 단어가 재료명일 가능성이 높음
+        String[] parts = trimmed.split("\\s+");
+        if (parts.length > 0) {
+            return parts[0].trim();
+        }
+        
+        return trimmed;
     }
 }
