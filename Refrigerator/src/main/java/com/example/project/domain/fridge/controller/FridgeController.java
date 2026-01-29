@@ -54,7 +54,7 @@ public class FridgeController {
      */
     @DeleteMapping("/{fridgeItemId}")
     public ResponseEntity<Void> removeItem(
-            @PathVariable Long fridgeItemId,
+            @PathVariable("fridgeItemId") Long fridgeItemId,
             @AuthenticationPrincipal Users user
     ) {
         if (user == null) {
