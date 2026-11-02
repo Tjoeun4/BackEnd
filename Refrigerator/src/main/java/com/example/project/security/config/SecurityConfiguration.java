@@ -74,14 +74,15 @@ public class SecurityConfiguration {
                                 .requestMatchers("/ws-stomp/**").permitAll() // 웹소켓 핸드쉐이크 허용
                                 .requestMatchers(GET, "/api/route/**").permitAll()
                                 .requestMatchers("/api/ocr/**").permitAll()
-                                .requestMatchers("/api/**").permitAll()
-                                
+
                                 // ★ 중요: 채팅과 공구 관련 API는 반드시 인증(Token) 필요
                                 // 이렇게 설정해야 @AuthenticationPrincipal에 데이터가 정상적으로 들어옵니다.
+                                // 규칙은 위에서부터 처음 일치하는 것 하나만 적용되므로 /api/** permitAll보다 앞에 둔다
                                 .requestMatchers("/api/chat/**").authenticated()
                                 .requestMatchers("/api/group-buy/**").authenticated()
                                 .requestMatchers("/api/user/**").authenticated() // 유저 정보 관련 추가
-                                
+                                .requestMatchers("/api/**").permitAll()
+
                                 .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS)) // 세션 미사용
